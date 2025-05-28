@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('title', 'Share Secret')
-
 @section('content')
 <div class="max-w-2xl mx-auto">
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
