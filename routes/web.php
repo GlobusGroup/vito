@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\SecretController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+
+Route::redirect('/', '/secrets/create');
+Route::get('/secrets/create', [SecretController::class, 'create'])->name('secrets.create');
+Route::post('/secrets', [SecretController::class, 'store'])->name('secrets.store');
+Route::get('/secrets/{secret}', [SecretController::class, 'show'])->name('secrets.show');

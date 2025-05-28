@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Secret extends Model
 {
@@ -12,29 +13,33 @@ class Secret extends Model
     protected $fillable = [
         'encrypted_content',
         'valid_until',
-        'is_used',
+        'requires_password',
     ];
 
     protected $casts = [
         'valid_until' => 'datetime',
-        'is_used' => 'boolean',
+        'requires_password' => 'boolean',
     ];
+
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->id = (string) Str::uuid();
+        });
+    }
 
     public function isValid(): bool
     {
-        if ($this->is_used) {
-            return false;
-        }
-
         if ($this->valid_until && $this->valid_until->isPast()) {
             return false;
         }
 
         return true;
-    }
-
-    public function markAsUsed(): void
-    {
-        $this->update(['is_used' => true]);
     }
 }
