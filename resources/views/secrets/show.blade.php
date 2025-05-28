@@ -8,23 +8,21 @@
         <div class="px-6 py-8">
             <div class="space-y-6">
                 {{-- Secret Display --}}
-                <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <div class="flex flex-col items-center justify-between">
-                        <div class="flex-1 w-full">
-                            <div id="secret-display" class="text-2xl font-mono tracking-wider text-center bg-white p-4 rounded border border-gray-200">
-                                ••••••••••••••••••••••
-                            </div>
+                <div>
+                    <div class="w-full">
+                        <div id="secret-display" class="text-2xl font-mono tracking-wider text-center bg-gray-50 p-4 rounded border border-gray-200">
+                            ••••••••••••••••••••••
                         </div>
-                        <div class="flex space-x-3 mt-6">
-                            <button id="reveal-btn" 
-                                    class="inline-flex items-center px-4 py-2 bg-primary-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                Reveal
-                            </button>
-                            <button id="copy-btn"
-                                    class="hidden inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                Copy
-                            </button>
-                        </div>
+                    </div>
+                    <div class="flex justify-center space-x-3 mt-6">
+                        <button id="reveal-btn" 
+                                class="inline-flex items-center px-4 py-2 bg-primary-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            Reveal
+                        </button>
+                        <button id="copy-btn"
+                                class="hidden inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            Copy
+                        </button>
                     </div>
                 </div>
 
