@@ -10,20 +10,20 @@
                 <div class="p-6 text-gray-900">
                     <div class="space-y-6">
                         {{-- Secret Display --}}
-                        <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
                             <div class="flex flex-col items-center justify-between">
-                                <div class="flex-1">
-                                    <div id="secret-display" class="text-2xl font-mono tracking-wider">
+                                <div class="flex-1 w-full">
+                                    <div id="secret-display" class="text-2xl font-mono tracking-wider text-center bg-white p-4 rounded border border-gray-200">
                                         ••••••••••••••••••••••
                                     </div>
                                 </div>
-                                <div class="flex space-x-2 mt-5">
+                                <div class="flex space-x-3 mt-6">
                                     <button id="reveal-btn" 
                                             class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                         Reveal
                                     </button>
                                     <button id="copy-btn"
-                                            class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                            class="hidden inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                         Copy
                                     </button>
                                 </div>
@@ -64,8 +64,16 @@
             const passwordSection = document.getElementById('password-section');
             let isRevealed = false;
             let secretContent = null;
+            let decryptedContent = null;
 
             revealBtn.addEventListener('click', async function() {
+                if (decryptedContent && !isRevealed) {
+                    secretDisplay.textContent = decryptedContent;
+                    revealBtn.textContent = 'Hide';
+                    copyBtn.classList.remove('hidden');
+                    isRevealed = true;
+                    return;
+                }
                 if (!isRevealed) {
                     if (@json($secret['requires_password'])) {
                         const password = document.getElementById('password').value;
@@ -94,7 +102,9 @@
                         const data = await response.json();
                         secretContent = data.content;
                         secretDisplay.textContent = secretContent;
+                        decryptedContent = secretContent;
                         revealBtn.textContent = 'Hide';
+                        copyBtn.classList.remove('hidden');
                         isRevealed = true;
                     } catch (error) {
                         console.log('error', error);
@@ -102,7 +112,7 @@
                     }
                 } else {
                     secretDisplay.textContent = '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••';
-                    revealBtn.textContent = 'Reveal';
+                    revealBtn.textContent = 'Show';
                     isRevealed = false;
                 }
             });
@@ -112,8 +122,13 @@
                     navigator.clipboard.writeText(secretContent).then(() => {
                         const originalText = copyBtn.textContent;
                         copyBtn.textContent = 'Copied!';
+                        copyBtn.classList.add('bg-green-600', 'hover:bg-green-700', 'focus:bg-green-700');
+                        copyBtn.classList.remove('bg-gray-600', 'hover:bg-gray-700', 'focus:bg-gray-700');
+                        
                         setTimeout(() => {
                             copyBtn.textContent = originalText;
+                            copyBtn.classList.remove('bg-green-600', 'hover:bg-green-700', 'focus:bg-green-700');
+                            copyBtn.classList.add('bg-gray-600', 'hover:bg-gray-700', 'focus:bg-gray-700');
                         }, 2000);
                     });
                 }
