@@ -1,8 +1,11 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
+use App\Models\Secret;
 use Illuminate\Support\Facades\Artisan;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Delete expired secrets
+Artisan::command('delete-expired-secrets', function () {
+    Secret::where('created_at', '<', now()->subDays(30))
+    ->orWhere('valid_until', '<', now())
+    ->delete();
+})->daily();

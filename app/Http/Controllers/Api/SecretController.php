@@ -24,11 +24,11 @@ class SecretController extends Controller
             $secret->delete();
             return response()->json(['error' => 'Secret expired'], 404);
         }
-        
+
         $decrypted_content = Crypt::decryptString($secret->encrypted_content, $request->s, $request->password);
 
         if (is_null($secret->valid_until)) {
-            // $secret->delete();
+            $secret->delete();
         }
 
         return response()->json(['content' => $decrypted_content]);
