@@ -51,7 +51,7 @@ class SecretController extends Controller
         $encryptionKey = Str::uuid();
 
         // Encrypt the content with the provided password
-        $encryptedContent = Crypt::encryptString($request->content, $encryptionKey, $request->password);
+        $encryptedContent = Crypt::encryptString($request->content, $encryptionKey, $request->password ?? '');
 
         $secret = Secret::create([
             'encrypted_content' => $encryptedContent,
