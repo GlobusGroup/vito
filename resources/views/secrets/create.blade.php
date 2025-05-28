@@ -43,8 +43,8 @@
                 </div>
 
                 <div id="expiration_field" class="hidden">
-                    <label for="valid_for" class="block text-sm font-medium text-gray-700">Valid for (minutes)</label>
-                    <input type="number" name="valid_for" id="valid_for" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                    <label for="valid_for" class="block text-sm font-medium text-gray-700">Valid for (minutes, default 30 days)</label>
+                    <input type="number" name="valid_for" id="valid_for" min="1" max="42000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
                 </div>
 
                 <div>
