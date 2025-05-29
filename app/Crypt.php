@@ -6,19 +6,12 @@ class Crypt
 {
     const DEFAULT_PASSWORD = 'no_password_specified';
 
-    protected static function deriveKey($password, $salt, $additionalPassword)
-    {
-        $combined = $password . $additionalPassword;
-        return hash_pbkdf2('sha256', $combined, $salt, 100000, 32, true);
-    }
-
     public static function encryptString(string $plaintext, string $encryptionKey, string $password)
     {
-        $method = 'aes-256-cbc';
         $salt = random_bytes(16);
         $iv = random_bytes(16);
         $key = self::deriveKey($encryptionKey, $salt, $password);
-        $encrypted = openssl_encrypt($plaintext, $method, $key, OPENSSL_RAW_DATA, $iv);
+        $encrypted = openssl_encrypt($plaintext, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
         $mac = hash_hmac('sha256', $salt . $iv . $encrypted, $key, true);
 
         return base64_encode($salt . $iv . $mac . $encrypted);
@@ -26,7 +19,6 @@ class Crypt
 
     public static function decryptString(string $encrypted, string $encryptionKey, string $password)
     {
-        $method = 'aes-256-cbc';
         $data = base64_decode($encrypted);
         $salt = substr($data, 0, 16);
         $iv = substr($data, 16, 16);
@@ -39,6 +31,12 @@ class Crypt
             return false;
         }
 
-        return openssl_decrypt($ciphertext, $method, $key, OPENSSL_RAW_DATA, $iv);
+        return openssl_decrypt($ciphertext, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
+    }
+
+    protected static function deriveKey($password, $salt, $additionalPassword)
+    {
+        $combined = $password . $additionalPassword;
+        return hash_pbkdf2('sha256', $combined, $salt, 100000, 32, true);
     }
 }
