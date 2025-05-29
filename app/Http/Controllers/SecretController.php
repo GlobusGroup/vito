@@ -48,10 +48,13 @@ class SecretController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $encryptionKey = base64_encode(random_bytes(32));
+        $encryptionKey = random_bytes(32);
 
-        // Encrypt the content with the provided password
-        $encryptedContent = Crypt::encryptString($request->content, $encryptionKey, $request->password ?? Crypt::DEFAULT_PASSWORD);
+        $encryptedContent = Crypt::encryptString(
+            $request->content,
+            $encryptionKey,
+            $request->password ?? Crypt::DEFAULT_PASSWORD
+        );
 
         $secret = Secret::create([
             'encrypted_content' => $encryptedContent,
@@ -59,7 +62,7 @@ class SecretController extends Controller
             'valid_until' => $request->valid_for ? now()->addMinutes((int) $request->valid_for) : null,
         ]);
 
-        return redirect()->route('secrets.share', ['secret' => $secret->id, 's' => $encryptionKey]);
+        return redirect()->route('secrets.share', ['secret' => $secret->id, 's' => base64_encode($encryptionKey)]);
     }
 
     public function share(Request $request, Secret $secret)
@@ -85,13 +88,11 @@ class SecretController extends Controller
             'password' => 'nullable|string|max:255',
         ]);
 
-        // Delete secret if it's older than 30 days
         if ($secret->created_at->addDays(30) < now()) {
             $secret->delete();
             return response()->json(['error' => 'Not Found'], 404);
         }
 
-        // Delete secret if it's expired
         if ($secret->valid_until && $secret->valid_until < now()) {
             $secret->delete();
             return response()->json(['error' => 'Not Found'], 404);
@@ -102,7 +103,11 @@ class SecretController extends Controller
         }
 
         try {
-            $decrypted_content = Crypt::decryptString($secret->encrypted_content, $request->s, $request->password ?? Crypt::DEFAULT_PASSWORD);
+            $decrypted_content = Crypt::decryptString(
+                $secret->encrypted_content,
+                base64_decode($request->s),
+                $request->password ?? Crypt::DEFAULT_PASSWORD
+            );
         } catch (Throwable $th) {
             app('log')->error('Error decrypting Secret');
             abort(500);
