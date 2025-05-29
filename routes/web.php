@@ -10,3 +10,7 @@ Route::post('/secrets', [SecretController::class, 'store'])->name('secrets.store
 Route::get('/secrets/share', [SecretController::class, 'share'])->name('secrets.share');
 Route::get('/secrets/show', [SecretController::class, 'show'])->name('secrets.show');
 Route::post('/secrets/decrypt', [SecretController::class, 'decrypt'])->name('secrets.decrypt')->middleware('throttle:20,1');
+
+Route::get('/terms', function () {
+    return view('terms');
+})->name('terms');
