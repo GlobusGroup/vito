@@ -1,0 +1,124 @@
+#!/bin/sh
+
+echo "Vito is starting..."
+echo "================================================"
+
+cat << 'EOF'
+█████████     █████████   ████           █                         
+ ███████       ████████ ███████         ██                         
+ ████████      ████████ ███████        ███                         
+ ████████      ███████    ████       █████                         
+  ███████     ████████            █████████████    █████████████   
+  ████████    ███████     █████  ██████████████  █████████████████ 
+   ███████    ███████  ████████  █████████████   ██████████████████
+   ███████   ███████    ███████    ███████       ███████   ████████
+   ████████  ███████    ███████    ███████       ██████     ███████
+    ███████ ████████    ███████    ███████       ██████     ███████
+    ███████████████     ███████    ███████       ██████     ███████
+     ██████████████     ███████    ███████       ██████     ███████
+     ██████████████     ███████    ███████       ██████     ███████
+     █████████████      ███████    ███████       ██████     ███████
+      ████████████      ███████    ███████       ███████    ███████
+      ███████████       ███████    ████████████  ██████████████████
+       ██████████       ███████    ████████████  █████████████████ 
+       ██████████      █████████    █████████     ███████████████  
+EOF
+
+echo "https://vito.globusdev.com"
+echo "================================================"
+
+
+
+
+
+export APP_URL=/
+export ASSET_URL=/
+
+# First time setup check
+if [ ! -f /var/www/html/storage/.setup-lock ]; then
+    echo "[First time setup] Copying storage skeleton contents..."
+    rm -rf /var/www/html/storage/*
+    cp -r /var/www/html/storage_skell/* /var/www/html/storage/
+    chown -R vito:vito /var/www/html/storage
+    touch /var/www/html/storage/.setup-lock
+else
+    echo "Setup already completed, skipping..."
+fi
+
+# Make sure php-fpm run directory exists and has correct permissions
+mkdir -p /run/php
+chown -R vito:vito /run/php
+
+# Make sure public directory has correct permissions
+chown -R vito:vito /var/www/html/public
+
+# if the app.key file exists, load its contents into the environment as APP_KEY, otherwise generate a new one
+if [ -f /var/www/html/storage/app.key ]; then
+    echo "App key already exists, loading..."
+    export APP_KEY=$(cat /var/www/html/storage/app.key)
+else
+    # generate app key
+    echo "Generating app key..."
+    su-exec vito php artisan key:generate --force --show >/var/www/html/storage/app.key
+    echo "App key generated, loading..."
+    export APP_KEY=$(cat /var/www/html/storage/app.key)
+fi
+
+# if the jwt.secret file exists, load its contents into the environment as JWT_SECRET, otherwise generate a new one
+if [ -f /var/www/html/storage/jwt.secret ]; then
+    echo "JWT secret already exists, loading..."
+    export JWT_SECRET=$(cat /var/www/html/storage/jwt.secret)
+else
+    echo "Generating JWT secret..."
+    su-exec vito php -r "echo base64_encode(random_bytes(32));" >/var/www/html/storage/jwt.secret
+    echo "JWT secret generated, loading..."
+    export JWT_SECRET=$(cat /var/www/html/storage/jwt.secret)
+fi
+
+# does and environment variable DB_CONNECTION exist?
+if [ -z "$DB_CONNECTION" ]; then
+    echo "DB_CONNECTION environment variable not set, setting to sqlite..."
+    export DB_CONNECTION=sqlite
+    export DB_DATABASE=./storage/app/private/database.sqlite
+fi
+
+# Create an environment file for cron jobs
+echo "Creating environment file for cron jobs..."
+env | grep -E "^(APP_|DB_|REDIS_|MAIL_|QUEUE_|JWT_|ASSET_)" > /var/www/html/.env
+
+# Create a temporary crontab file
+echo "* * * * * cd /var/www/html && php artisan schedule:run >> /dev/null 2>&1" > /tmp/vito-crontab
+
+# Prevent crontab from complaining about the cache directory
+mkdir -p /root/.cache/crontab
+
+# Install the crontab for the vito user
+crontab -u vito /tmp/vito-crontab
+
+# Clean up
+rm /tmp/vito-crontab
+
+# Always run migrations
+echo "Running migrations..."
+su-exec vito php artisan migrate --force
+
+echo "Running seeds..."
+su-exec vito php artisan db:seed --force
+
+echo "Clearing templates cache..."
+su-exec vito php artisan view:clear
+
+echo "Clearing config cache..."
+su-exec vito php artisan config:clear
+
+echo "Clearing route cache..."
+su-exec vito php artisan route:clear
+
+echo "Clearing compiled classes..."
+su-exec vito php artisan clear-compiled
+
+echo "Updating legacy share paths..."
+su-exec vito php artisan update-legacy-share-paths
+
+echo "Starting services..."
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
