@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('secrets', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->text('encrypted_content');
+            $table->longText('encrypted_content');
             $table->tinyInteger('requires_password')->default(0);
             $table->timestamp('valid_until')->nullable()->index();
             $table->timestamps();

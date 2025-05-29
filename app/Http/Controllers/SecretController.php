@@ -40,7 +40,7 @@ class SecretController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'content' => 'required|string',
+            'content' => 'required|string|max:200000',
             'password' => 'nullable|string|max:255',
             'valid_for' => 'nullable|integer|min:1',
         ]);
