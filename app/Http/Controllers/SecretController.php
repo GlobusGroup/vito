@@ -49,7 +49,7 @@ class SecretController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $encryptionKey = Str::uuid();
+        $encryptionKey = base64_encode(random_bytes(32));
 
         // Encrypt the content with the provided password
         $encryptedContent = Crypt::encryptString($request->content, $encryptionKey, $request->password ?? '');
@@ -78,13 +78,13 @@ class SecretController extends Controller
         // Delete secret if it's older than 30 days
         if ($secret->created_at->addDays(30) < now()) {
             $secret->delete();
-            return response()->json(['error' => 'Secret expired'], 404);
+            return response()->json(['error' => 'Not Found'], 404);
         }
 
         // Delete secret if it's expired
         if ($secret->valid_until && $secret->valid_until < now()) {
             $secret->delete();
-            return response()->json(['error' => 'Secret expired'], 404);
+            return response()->json(['error' => 'Not Found'], 404);
         }
 
         if ($secret->requires_password && !$request->password) {
@@ -100,7 +100,7 @@ class SecretController extends Controller
 
         if ($decrypted_content === false) {
             app('log')->error('User provided an invalid password for Secret # ' . $secret->id);
-            return response()->json(['error' => 'Invalid password'], 401);
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
         if (is_null($secret->valid_until)) {
