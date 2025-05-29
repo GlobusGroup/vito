@@ -8,3 +8,5 @@ Route::redirect('/', '/secrets/create');
 Route::get('/secrets/create', [SecretController::class, 'create'])->name('secrets.create');
 Route::post('/secrets', [SecretController::class, 'store'])->name('secrets.store');
 Route::get('/secrets/{secret}', [SecretController::class, 'show'])->name('secrets.show');
+
+Route::post('/secrets/{secret}', [SecretController::class, 'decrypt'])->name('secrets.decrypt')->middleware('throttle:20,1');

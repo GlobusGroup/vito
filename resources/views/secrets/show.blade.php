@@ -75,10 +75,11 @@
                 }
 
                 try {
-                    const response = await fetch(`/api/secrets/{{ $secret['id'] }}`, {
+                    const response = await fetch(`/secrets/{{ $secret['id'] }}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         },
                         body: JSON.stringify({
                             s: @json($decryption_key),

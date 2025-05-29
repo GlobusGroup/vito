@@ -8,4 +8,4 @@ Artisan::command('delete-expired-secrets', function () {
     Secret::where('created_at', '<', now()->subDays(30))
     ->orWhere('valid_until', '<', now())
     ->delete();
-})->daily();
+})->hourly();
