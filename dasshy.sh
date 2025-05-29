@@ -7,7 +7,7 @@ if [ -f artisan ]; then
     FRAMEWORK_NAME="laravel"
     FRAMEWORK_VERSION=$($FORGE_PHP artisan --version | grep -oP '(?<=Laravel Framework )\d+\.\d+\.\d+')
 elif [ -f craft ]; then
-    FRAMEWORK_NAME="craftcms"
+    FRAMEWORK_NAME="craft"
     if command -v jq &> /dev/null; then
         FRAMEWORK_VERSION=$(jq -r '.packages[] | select(.name == "craftcms/cms") | .version' composer.lock)
     else
@@ -27,11 +27,12 @@ JSON_PAYLOAD=$(cat <<EOF
 {
     "id": "${SERVICE_ID}",
     "name": "${APP_NAME}",
-    "versions": {
-        "${FRAMEWORK_NAME}": "${FRAMEWORK_VERSION}",
-        "php": "${PHP_VERSION}",
-        "ubuntu": "${VERSION_ID}"
-    },
+    "framework": "${FRAMEWORK_NAME}",
+    "framework_version": "${FRAMEWORK_VERSION}",
+    "engine": "php",
+    "engine_version": "${PHP_VERSION}",
+    "os": "ubuntu",
+    "os_version": "${VERSION_ID}",
     "external_server": "${SERVER_IP}",
     "url": "${APP_URL}"
 }
