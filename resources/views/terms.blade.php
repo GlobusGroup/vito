@@ -102,13 +102,6 @@
                         </div>
                     </div>
                 </div>
-
-                {{-- Developer Note --}}
-                <div class="mt-8 pt-6 border-t border-gray-200">
-                    <div class="bg-gray-100 rounded-lg p-4 text-center">
-                        <p class="text-sm text-gray-600 italic">These terms are designed to protect the service and its users. If something happens and someone else has used the service, this disclaimer covers our responsibilities.</p>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
