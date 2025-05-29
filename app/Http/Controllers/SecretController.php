@@ -48,7 +48,7 @@ class SecretController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $encryptionKey = random_bytes(32);
+        $encryptionKey = sha1(random_bytes(32));
 
         $encryptedContent = Crypt::encryptString(
             $request->content,
@@ -58,11 +58,11 @@ class SecretController extends Controller
 
         $secret = Secret::create([
             'encrypted_content' => $encryptedContent,
-            'requires_password' => $request->password ? true : false,
+            'requires_password' => !is_null($request->password),
             'valid_until' => $request->valid_for ? now()->addMinutes((int) $request->valid_for) : null,
         ]);
 
-        return redirect()->route('secrets.share', ['secret' => $secret->id, 's' => base64_encode($encryptionKey)]);
+        return redirect()->route('secrets.share', ['secret' => $secret->id, 's' => $encryptionKey]);
     }
 
     public function share(Request $request, Secret $secret)
@@ -105,7 +105,7 @@ class SecretController extends Controller
         try {
             $decrypted_content = Crypt::decryptString(
                 $secret->encrypted_content,
-                base64_decode($request->s),
+                $request->s,
                 $request->password ?? Crypt::DEFAULT_PASSWORD
             );
         } catch (Throwable $th) {
