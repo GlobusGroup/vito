@@ -94,12 +94,12 @@ class SecretController extends Controller
         try {
             $decrypted_content = Crypt::decryptString($secret->encrypted_content, $request->s, $request->password ?? '');
         } catch (Throwable $th) {
-            app('log')->error('Error decrypting Secret # ' . $secret->id . ' with error: ' . $th->getMessage());
+            app('log')->error('Error decrypting Secret');
             abort(500);
         }
 
         if ($decrypted_content === false) {
-            app('log')->error('User provided an invalid password for Secret # ' . $secret->id);
+            app('log')->error('User provided an invalid password');
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
