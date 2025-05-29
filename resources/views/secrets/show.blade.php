@@ -123,7 +123,9 @@
                 secretDisplay.classList.remove('flex', 'justify-center');
                 actionButtons.classList.remove('hidden');
                 actionButtons.classList.add('flex');
-                passwordSection.classList.add('hidden');
+                if (passwordSection) {
+                    passwordSection.classList.add('hidden');
+                }
             } catch (error) {
                 console.log('error', error);
                 alert('Failed to decrypt secret. Please try again.');
