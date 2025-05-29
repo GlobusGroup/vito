@@ -7,4 +7,4 @@ use Illuminate\Support\Facades\Artisan;
 Artisan::command('delete-expired-secrets', function () {
     Secret::where('created_at', '<', now()->subMinutes((int) config('app.secrets_lifetime')))
     ->delete();
-})->hourly();
+})->everyMinute();

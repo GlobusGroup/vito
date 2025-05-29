@@ -98,9 +98,7 @@ class SecretController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        if (is_null($secret->valid_until)) {
-            $secret->delete();
-        }
+        $secret->delete();
 
         return response()->json(['content' => $decrypted_content]);
     }
