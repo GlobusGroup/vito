@@ -4,6 +4,8 @@ namespace App;
 
 class Crypt
 {
+    const DEFAULT_PASSWORD = 'no_password_specified';
+
     protected static function deriveKey($password, $salt, $additionalPassword = '')
     {
         $combined = $password . $additionalPassword;

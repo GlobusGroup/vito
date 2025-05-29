@@ -51,7 +51,7 @@ class SecretController extends Controller
         $encryptionKey = base64_encode(random_bytes(32));
 
         // Encrypt the content with the provided password
-        $encryptedContent = Crypt::encryptString($request->content, $encryptionKey, $request->password ?? '');
+        $encryptedContent = Crypt::encryptString($request->content, $encryptionKey, $request->password ?? Crypt::DEFAULT_PASSWORD);
 
         $secret = Secret::create([
             'encrypted_content' => $encryptedContent,
@@ -102,7 +102,7 @@ class SecretController extends Controller
         }
 
         try {
-            $decrypted_content = Crypt::decryptString($secret->encrypted_content, $request->s, $request->password ?? '');
+            $decrypted_content = Crypt::decryptString($secret->encrypted_content, $request->s, $request->password ?? Crypt::DEFAULT_PASSWORD);
         } catch (Throwable $th) {
             app('log')->error('Error decrypting Secret');
             abort(500);
