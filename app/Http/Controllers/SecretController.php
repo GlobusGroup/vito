@@ -101,6 +101,9 @@ class SecretController extends Controller
             return response()->json(['error' => 'Password is required'], 401);
         }
 
+        // Slow down decryption to prevent brute force attacks
+        usleep(random_int(200_000, 500_000));
+
         try {
             $decrypted_content = Crypt::decryptString(
                 $secret->encrypted_content,
