@@ -60,11 +60,22 @@ class SecretController extends Controller
             'valid_until' => $request->valid_for ? now()->addMinutes((int) $request->valid_for) : null,
         ]);
 
+        return redirect()->route('secrets.share', ['secret' => $secret->id, 's' => $encryptionKey]);
+    }
+
+    public function share(Request $request, Secret $secret)
+    {
+        $key = $request->query('s');
+
+        if (!$key) {
+            abort(404);
+        }
+
         return view('secrets.share', [
             'message' => 'Secret created successfully',
             'id' => $secret->id,
-            'secret' => $encryptionKey,
-            'url' => route('secrets.show', $secret->id) . '?s=' . $encryptionKey,
+            'secret' => $key,
+            'url' => route('secrets.show', $secret->id) . '?s=' . $key,
         ]);
     }
 
