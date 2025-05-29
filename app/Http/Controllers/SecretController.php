@@ -77,14 +77,21 @@ class SecretController extends Controller
         $data = json_encode(['secret_id' => $secret->id, 'secret_key' => $encryptionKey]);
         $encryptedData = LaravelCrypt::encryptString($data);
 
-        return redirect()->route('secrets.share', ['d' => $encryptedData]);
+        // Flash in the session the encrypted data
+        session()->flash('encrypted_data', $encryptedData);
+
+        return redirect()->route('secrets.share');
     }
 
     public function share()
     {
+        if (!session()->has('encrypted_data')) {
+            abort(404);
+        }
+
         return view('secrets.share', [
             'message' => 'Secret created successfully',
-            'url' => route('secrets.show') . '?d=' . request()->d,
+            'url' => route('secrets.show') . '?d=' . session()->get('encrypted_data'),
         ]);
     }
 
