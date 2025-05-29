@@ -87,13 +87,7 @@ class SecretController extends Controller
             'password' => 'nullable|string|max:255',
         ]);
 
-        if ($secret->created_at->addDays(30) < now()) {
-            $secret->delete();
-            return response()->json(['error' => 'Not Found'], 404);
-        }
-
-        if ($secret->valid_until && $secret->valid_until < now()) {
-            $secret->delete();
+        if ($this->isExpired($secret)) {
             return response()->json(['error' => 'Not Found'], 404);
         }
 
@@ -102,7 +96,7 @@ class SecretController extends Controller
         }
 
         // Slow down decryption to prevent brute force attacks
-        usleep(random_int(200_000, 500_000));
+        usleep(random_int(400_000, 600_000));
 
         try {
             $decrypted_content = Crypt::decryptString(
@@ -125,5 +119,20 @@ class SecretController extends Controller
         }
 
         return response()->json(['content' => $decrypted_content]);
+    }
+
+    protected function isExpired(Secret $secret)
+    {
+        if ($secret->created_at->addDays(30) < now()) {
+            $secret->delete();
+            return true;
+        }
+
+        if ($secret->valid_until && $secret->valid_until < now()) {
+            $secret->delete();
+            return true;
+        }
+
+        return false;
     }
 }
