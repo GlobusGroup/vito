@@ -6,7 +6,6 @@ use App\Crypt;
 use App\Models\Secret;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Throwable;
 
 class SecretController extends Controller
@@ -14,7 +13,7 @@ class SecretController extends Controller
     public function show(Secret $secret)
     {
         request()->validate([
-            's' => 'required|string|uuid',
+            's' => 'required|string',
         ]);
 
         if ($secret->valid_until && $secret->valid_until < now()) {
@@ -82,7 +81,7 @@ class SecretController extends Controller
     public function decrypt(Request $request, Secret $secret)
     {
         $request->validate([
-            's' => 'required|string|uuid',
+            's' => 'required|string',
             'password' => 'nullable|string|max:255',
         ]);
 
