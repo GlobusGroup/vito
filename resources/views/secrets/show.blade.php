@@ -146,7 +146,11 @@
 
             if (!isRevealed) {
                 // Show the secret
-                secretDisplay.innerHTML = `<span class="text-2xl font-mono tracking-wider">${secretContent}</span>`;
+                const span = document.createElement('span');
+                span.className = 'text-2xl font-mono tracking-wider';
+                span.textContent = secretContent;
+                secretDisplay.innerHTML = '';
+                secretDisplay.appendChild(span);
                 revealBtn.textContent = 'Hide';
                 isRevealed = true;
             } else {
