@@ -11,7 +11,7 @@
 
                 <div>
                     <label for="content" class="block text-sm font-medium text-gray-700">Secret Content</label>
-                    <textarea name="content" maxlength="200000" id="content" rows="4" class="px-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500" required></textarea>
+                    <textarea name="content" maxlength="200000" id="content" rows="4" class="px-2 py-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500" required></textarea>
                 </div>
 
                 <div class="flex items-center justify-between">
@@ -114,6 +114,9 @@
         if (hasExpirationCheckbox.checked) {
             toggleExpirationField();
         }
+
+        // focus on content textarea
+        document.getElementById('content').focus();
     });
 
 </script>
