@@ -50,8 +50,7 @@ class SecretController extends Controller
 
         // Encrypt the data and flash it in the session
         $data = json_encode(['secret_id' => $secret->id, 'secret_key' => $encryptionKey]);
-        $encryptedData = LaravelCrypt::encryptString($data);
-        session()->flash('encrypted_data', $encryptedData);
+        session()->flash('encrypted_data', LaravelCrypt::encryptString($data));
 
         return redirect()->route('secrets.share');
     }
@@ -74,7 +73,6 @@ class SecretController extends Controller
 
         $decryptedData = $this->decryptPayload(request()->d);
         $secret = Secret::findOrFail($decryptedData['secret_id']);
-
         $this->checkIfSecretIsValidOrAbort($secret);
 
         if ($secret->requires_password && !request()->password) {
