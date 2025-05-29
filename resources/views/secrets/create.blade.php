@@ -27,7 +27,7 @@
                 <div id="password_fields" class="hidden space-y-4">
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                        <input type="password" name="password" maxlength="255" id="password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                        <input type="password" name="password" maxlength="255" id="password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 px-2">
                     </div>
                 </div>
 
@@ -42,7 +42,7 @@
 
                 <div id="expiration_field" class="hidden">
                     <label for="valid_for" class="block text-sm font-medium text-gray-700">Valid for (minutes, default 30 days)</label>
-                    <input type="number" name="valid_for" id="valid_for" min="1" max="42000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                    <input type="number" name="valid_for" id="valid_for" min="1" max="42000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 px-2">
                 </div>
 
                 <div>
@@ -61,6 +61,7 @@
     function togglePasswordFields() {
         const checkbox = document.getElementById('require_password');
         const passwordFields = document.getElementById('password_fields');
+        const passwordInput = document.getElementById('password');
 
         const dot = checkbox.nextElementSibling.nextElementSibling;
         const bg = checkbox.nextElementSibling;
@@ -69,8 +70,10 @@
             passwordFields.classList.remove('hidden');
             dot.style.transform = 'translateX(24px)';
             bg.classList.replace('bg-gray-300', 'bg-primary-500');
+            setTimeout(() => passwordInput.focus(), 100);
         } else {
             passwordFields.classList.add('hidden');
+            passwordInput.value = '';
             dot.style.transform = 'translateX(0)';
             bg.classList.replace('bg-primary-500', 'bg-gray-300');
         }
@@ -89,9 +92,11 @@
             validForInput.setAttribute('required', '');
             dot.style.transform = 'translateX(24px)';
             bg.classList.replace('bg-gray-300', 'bg-primary-500');
+            setTimeout(() => validForInput.focus(), 100);
         } else {
             expirationField.classList.add('hidden');
             validForInput.removeAttribute('required');
+            validForInput.value = '';
             dot.style.transform = 'translateX(0)';
             bg.classList.replace('bg-primary-500', 'bg-gray-300');
         }
