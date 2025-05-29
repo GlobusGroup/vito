@@ -59,6 +59,12 @@
 
                 {{-- Submit Button --}}
                 <div class="pt-4">
+                    <div class="text-center mb-3">
+                        <p class="text-xs text-gray-500">
+                            By creating your secret you agree to our 
+                            <a href="{{ route('terms') }}" class="text-primary-600 hover:text-primary-800 underline transition-colors duration-200">Terms of Use</a>
+                        </p>
+                    </div>
                     <button type="submit" 
                             class="w-full flex justify-center items-center py-4 px-6 border border-transparent rounded-lg shadow-sm text-base font-semibold text-white bg-primary-500 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 hover:shadow-lg transform hover:scale-[1.02]">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
