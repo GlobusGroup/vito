@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Crypt;
 use App\Models\Secret;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
 
@@ -36,9 +35,9 @@ class SecretController extends Controller
         return view('secrets.create');
     }
 
-    public function store(Request $request)
+    public function store()
     {
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make(request()->all(), [
             'content' => 'required|string|max:200000',
             'password' => 'nullable|string|max:255',
             'valid_for' => 'nullable|integer|min:1',
@@ -51,23 +50,23 @@ class SecretController extends Controller
         $encryptionKey = bin2hex(random_bytes(32));
 
         $encryptedContent = Crypt::encryptString(
-            $request->content,
+            request()->content,
             $encryptionKey,
-            $request->password ?? Crypt::DEFAULT_PASSWORD
+            request()->password ?? Crypt::DEFAULT_PASSWORD
         );
 
         $secret = Secret::create([
             'encrypted_content' => $encryptedContent,
-            'requires_password' => !is_null($request->password),
-            'valid_until' => $request->valid_for ? now()->addMinutes((int) $request->valid_for) : null,
+            'requires_password' => !is_null(request()->password),
+            'valid_until' => request()->valid_for ? now()->addMinutes((int) request()->valid_for) : null,
         ]);
 
         return redirect()->route('secrets.share', ['secret' => $secret->id, 's' => $encryptionKey]);
     }
 
-    public function share(Request $request, Secret $secret)
+    public function share(Secret $secret)
     {
-        $key = $request->query('s');
+        $key = request()->query('s');
 
         if (!$key) {
             abort(404);
@@ -81,9 +80,9 @@ class SecretController extends Controller
         ]);
     }
 
-    public function decrypt(Request $request, Secret $secret)
+    public function decrypt(Secret $secret)
     {
-        $request->validate([
+        request()->validate([
             's' => 'required|string|size:64',
             'password' => 'nullable|string|max:255',
         ]);
@@ -98,15 +97,15 @@ class SecretController extends Controller
             return response()->json(['error' => 'Not Found'], 404);
         }
 
-        if ($secret->requires_password && !$request->password) {
+        if ($secret->requires_password && !request()->password) {
             return response()->json(['error' => 'Password is required'], 401);
         }
 
         try {
             $decrypted_content = Crypt::decryptString(
                 $secret->encrypted_content,
-                $request->s,
-                $request->password ?? Crypt::DEFAULT_PASSWORD
+                request()->s,
+                request()->password ?? Crypt::DEFAULT_PASSWORD
             );
         } catch (Throwable $th) {
             app('log')->error('Error decrypting Secret');
