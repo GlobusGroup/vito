@@ -48,7 +48,7 @@ class SecretController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $encryptionKey = sha1(random_bytes(32));
+        $encryptionKey = bin2hex(random_bytes(32));
 
         $encryptedContent = Crypt::encryptString(
             $request->content,
