@@ -98,14 +98,14 @@
                 decryptBtn.classList.add('opacity-75', 'cursor-not-allowed');
 
                 const response = await fetch(`/secrets/decrypt`, {
-                    method: 'POST'
-                    , headers: {
-                        'Content-Type': 'application/json'
-                        , 'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    , }
-                    , body: JSON.stringify({
-                        d: @json($d)
-                        , password: @json($requires_password) ? document.getElementById('password').value : null
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: JSON.stringify({
+                        d: @json($d),
+                        password: @json($requires_password) ? document.getElementById('password').value : null,
                     })
                 });
 
