@@ -12,7 +12,7 @@
                             ••••••••••••••••••••••
                         </div>
                     </div>
-                     @if($secret['requires_password'])
+                     @if($requires_password)
                         <div id="password-section">
                             <div class="mt-4">
                                 <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
@@ -35,13 +35,6 @@
                         </button>
                     </div>
                 </div>
-
-                {{-- Expiration Info --}}
-                @if($secret['valid_until'])
-                <div class="text-sm text-gray-500">
-                    This secret will expire on: {{ \Carbon\Carbon::parse($secret['valid_until'])->format('F j, Y g:i A') }}
-                </div>
-                @endif
             </div>
         </div>
     </div>
@@ -60,7 +53,7 @@
         let decryptedContent = null;
         let isDecrypting = false;
 
-        if (@json($secret['requires_password'])) {
+        if (@json($requires_password)) {
             document.getElementById('password').focus();
         }
 
@@ -87,7 +80,7 @@
                 return;
             }
             if (!isRevealed) {
-                if (@json($secret['requires_password'])) {
+                if (@json($requires_password)) {
                     const password = document.getElementById('password').value;
                     if (!password) {
                         passwordSection.classList.remove('hidden');
@@ -109,15 +102,15 @@
                     revealBtn.classList.add('opacity-75', 'cursor-not-allowed');
                     secretDisplay.textContent = 'Decrypting...';
 
-                    const response = await fetch(`/secrets/{{ $secret['id'] }}`, {
+                    const response = await fetch(`/secrets/decrypt`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         },
                         body: JSON.stringify({
-                            s: @json($decryption_key),
-                            password: @json($secret['requires_password']) ? document.getElementById('password').value : null
+                            d: @json($d),
+                            password: @json($requires_password) ? document.getElementById('password').value : null
                         })
                     });
 

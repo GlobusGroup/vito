@@ -5,42 +5,21 @@ namespace App\Http\Controllers;
 use App\Crypt;
 use App\Models\Secret;
 use Illuminate\Support\Facades\Crypt as LaravelCrypt;
-use Illuminate\Support\Facades\Validator;
 use Throwable;
 
 class SecretController extends Controller
 {
     public function show()
     {
-        request()->validate([
-            'd' => 'required|string',
-        ]);
+        request()->validate(['d' => 'required|string']);
 
-        try {
-            $decryptedData = LaravelCrypt::decryptString(request()->d);
-            $decryptedData = json_decode($decryptedData, true);
-        } catch (Throwable $th) {
-            abort(404);
-        }
-
-        if (!$decryptedData) {
-            abort(404);
-        }
-
+        $decryptedData = $this->decryptPayload(request()->d);
         $secret = Secret::findOrFail($decryptedData['secret_id']);
-
-        if ($secret->valid_until && $secret->valid_until < now()) {
-            $secret->delete();
-            abort(404);
-        }
+        $this->checkIfSecretIsValidOrAbort($secret);
 
         return view('secrets.show', [
-            'decryption_key' => $decryptedData['secret_key'],
-            'secret' => [
-                'id' => $secret->id,
-                'requires_password' => $secret->requires_password,
-                'valid_until' => $secret->valid_until,
-            ],
+            'd' => request()->d,
+            'requires_password' => $secret->requires_password,
         ]);
     }
 
@@ -51,14 +30,10 @@ class SecretController extends Controller
 
     public function store()
     {
-        $validator = Validator::make(request()->all(), [
+        request()->validate([
             'content' => 'required|string|max:200000',
             'password' => 'nullable|string|max:100',
         ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
 
         $encryptionKey = bin2hex(random_bytes(32));
 
@@ -73,11 +48,9 @@ class SecretController extends Controller
             'requires_password' => !is_null(request()->password),
         ]);
 
-        // Encrypt the data
+        // Encrypt the data and flash it in the session
         $data = json_encode(['secret_id' => $secret->id, 'secret_key' => $encryptionKey]);
         $encryptedData = LaravelCrypt::encryptString($data);
-
-        // Flash in the session the encrypted data
         session()->flash('encrypted_data', $encryptedData);
 
         return redirect()->route('secrets.share');
@@ -89,22 +62,20 @@ class SecretController extends Controller
             abort(404);
         }
 
-        return view('secrets.share', [
-            'message' => 'Secret created successfully',
-            'url' => route('secrets.show') . '?d=' . session()->get('encrypted_data'),
-        ]);
+        return view('secrets.share');
     }
 
-    public function decrypt(Secret $secret)
+    public function decrypt()
     {
         request()->validate([
-            's' => 'required|string|size:64',
+            'd' => 'required|string',
             'password' => 'nullable|string|max:100',
         ]);
 
-        if ($this->isExpired($secret)) {
-            return response()->json(['error' => 'Not Found'], 404);
-        }
+        $decryptedData = $this->decryptPayload(request()->d);
+        $secret = Secret::findOrFail($decryptedData['secret_id']);
+
+        $this->checkIfSecretIsValidOrAbort($secret);
 
         if ($secret->requires_password && !request()->password) {
             return response()->json(['error' => 'Unauthorized'], 401);
@@ -116,7 +87,7 @@ class SecretController extends Controller
         try {
             $decrypted_content = Crypt::decryptString(
                 $secret->encrypted_content,
-                request()->s,
+                $decryptedData['secret_key'],
                 request()->password ?? Crypt::DEFAULT_PASSWORD
             );
         } catch (Throwable $th) {
@@ -136,13 +107,26 @@ class SecretController extends Controller
         return response()->json(['content' => $decrypted_content]);
     }
 
-    protected function isExpired(Secret $secret)
+    protected function checkIfSecretIsValidOrAbort(Secret $secret)
     {
-        if ($secret->created_at->addMinutes((int) config('app.secrets_lifetime')) < now()) {
+        if ($secret->isExpired()) {
             $secret->delete();
-            return true;
+            abort(404);
+        }
+    }
+
+    protected function decryptPayload(string $payload)
+    {
+        try {
+            $decryptedData = LaravelCrypt::decryptString($payload);
+            $decryptedData = json_decode($decryptedData, true);
+        } catch (Throwable $th) {
+            abort(404);
         }
 
-        return false;
+        if (!$decryptedData) {
+            abort(404);
+        }
+        return $decryptedData;
     }
 }

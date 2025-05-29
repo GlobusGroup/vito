@@ -1,11 +1,15 @@
 @extends('layouts.app')
 
+@php
+    $url = route('secrets.show') . '?d=' . session()->get('encrypted_data');
+@endphp
+
 @section('content')
 <div class="max-w-2xl mx-auto">
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <div class="px-6 py-8">
             <div class="text-center mb-8">
-                <h2 class="text-2xl font-bold text-green-600">{{ $message }}</h2>
+                <h2 class="text-2xl font-bold text-green-600">Secret Created Successfully</h2>
                 <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
                     <div class="flex">
                         <div class="flex-shrink-0">

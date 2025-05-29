@@ -31,4 +31,9 @@ class Secret extends Model
             $model->id = (string) Str::uuid();
         });
     }
+
+    public function isExpired()
+    {
+        return $this->created_at->addMinutes((int) config('app.secrets_lifetime')) < now();
+    }
 }
