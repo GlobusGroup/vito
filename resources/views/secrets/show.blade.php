@@ -19,7 +19,7 @@
                                 <input type="password" 
                                     maxlength="255"
                                     id="password" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                                    class="px-2 py-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                     placeholder="Enter password">
                             </div>
                         </div>
@@ -57,6 +57,10 @@
         let isRevealed = false;
         let secretContent = null;
         let decryptedContent = null;
+
+        if (@json($secret['requires_password'])) {
+            document.getElementById('password').focus();
+        }
 
         revealBtn.addEventListener('click', async function() {
             if (decryptedContent && !isRevealed) {
