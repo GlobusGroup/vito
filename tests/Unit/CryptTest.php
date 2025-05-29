@@ -14,8 +14,8 @@ class CryptTest extends TestCase
     public function test_crypt_string(): void
     {
         $encryptionKey = Str::uuid();
-        $encryptedContent = Crypt::encryptString('test', $encryptionKey);
-        $decryptedContent = Crypt::decryptString($encryptedContent, $encryptionKey);
+        $encryptedContent = Crypt::encryptString('test', $encryptionKey, Crypt::DEFAULT_PASSWORD);
+        $decryptedContent = Crypt::decryptString($encryptedContent, $encryptionKey, Crypt::DEFAULT_PASSWORD);
         $this->assertEquals('test', $decryptedContent);
     }
 
