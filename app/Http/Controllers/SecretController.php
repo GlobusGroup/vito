@@ -41,7 +41,7 @@ class SecretController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'content' => 'required|string',
-            'password' => 'nullable|string',
+            'password' => 'nullable|string|max:255',
             'valid_for' => 'nullable|integer|min:1',
         ]);
 
@@ -72,7 +72,7 @@ class SecretController extends Controller
     {
         $request->validate([
             's' => 'required|string|uuid',
-            'password' => 'nullable|string',
+            'password' => 'nullable|string|max:255',
         ]);
 
         // Delete secret if it's older than 30 days
