@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
+ {{-- Header Section --}}
+    <div class="flex mb-4 justify-center items-center">
+        <img src="{{ asset('fav2.svg') }}" alt="Vito Logo" style="width: 120px;">
+    </div>
 <div class="max-w-2xl mx-auto">
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <div class="px-6 py-8">
