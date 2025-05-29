@@ -17,7 +17,7 @@
                             <div class="mt-4">
                                 <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
                                 <input type="password" 
-                                    maxlength="255"
+                                    maxlength="100"
                                     id="password" 
                                     class="px-2 py-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                     placeholder="Enter password">

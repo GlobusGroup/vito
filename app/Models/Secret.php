@@ -12,12 +12,10 @@ class Secret extends Model
 
     protected $fillable = [
         'encrypted_content',
-        'valid_until',
         'requires_password',
     ];
 
     protected $casts = [
-        'valid_until' => 'datetime',
         'requires_password' => 'boolean',
     ];
 
@@ -32,14 +30,5 @@ class Secret extends Model
         static::creating(function ($model) {
             $model->id = (string) Str::uuid();
         });
-    }
-
-    public function isValid(): bool
-    {
-        if ($this->valid_until && $this->valid_until->isPast()) {
-            return false;
-        }
-
-        return true;
     }
 }

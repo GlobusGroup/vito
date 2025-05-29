@@ -27,22 +27,8 @@
                 <div id="password_fields" class="hidden space-y-4">
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                        <input type="password" name="password" maxlength="255" id="password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 px-2">
+                        <input type="password" name="password" maxlength="100" id="password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 px-2">
                     </div>
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <label for="has_expiration" class="text-sm font-medium text-gray-700">Set Expiration Time <small class="text-gray-400">(optional)</small></label>
-                    <label class="relative inline-block w-12 h-6 cursor-pointer">
-                        <input type="checkbox" id="has_expiration" name="has_expiration" class="sr-only" onchange="toggleExpirationField()">
-                        <div class="block w-12 h-6 bg-gray-300 rounded-full transition-colors"></div>
-                        <div class="dot absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out"></div>
-                    </label>
-                </div>
-
-                <div id="expiration_field" class="hidden">
-                    <label for="valid_for" class="block text-sm font-medium text-gray-700">Valid for (minutes, default 30 days)</label>
-                    <input type="number" name="valid_for" id="valid_for" min="1" max="42000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 px-2">
                 </div>
 
                 <div>
@@ -79,40 +65,12 @@
         }
     }
 
-    function toggleExpirationField() {
-        const checkbox = document.getElementById('has_expiration');
-        const expirationField = document.getElementById('expiration_field');
-        const validForInput = document.getElementById('valid_for');
-
-        const bg = checkbox.nextElementSibling;
-        const dot = checkbox.nextElementSibling.nextElementSibling;
-
-        if (checkbox.checked) {
-            expirationField.classList.remove('hidden');
-            validForInput.setAttribute('required', '');
-            dot.style.transform = 'translateX(24px)';
-            bg.classList.replace('bg-gray-300', 'bg-primary-500');
-            setTimeout(() => validForInput.focus(), 100);
-        } else {
-            expirationField.classList.add('hidden');
-            validForInput.removeAttribute('required');
-            validForInput.value = '';
-            dot.style.transform = 'translateX(0)';
-            bg.classList.replace('bg-primary-500', 'bg-gray-300');
-        }
-    }
-
     // Initialize toggle states on page load
     document.addEventListener('DOMContentLoaded', function() {
         const requirePasswordCheckbox = document.getElementById('require_password');
-        const hasExpirationCheckbox = document.getElementById('has_expiration');
 
         if (requirePasswordCheckbox.checked) {
             togglePasswordFields();
-        }
-
-        if (hasExpirationCheckbox.checked) {
-            toggleExpirationField();
         }
 
         // focus on content textarea

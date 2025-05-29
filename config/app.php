@@ -123,4 +123,5 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'secrets_lifetime' => env('SECRETS_LIFETIME_IN_MINUTES', 60),
 ];

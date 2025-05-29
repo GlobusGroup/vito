@@ -4,16 +4,30 @@ namespace App\Http\Controllers;
 
 use App\Crypt;
 use App\Models\Secret;
+use Illuminate\Support\Facades\Crypt as LaravelCrypt;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
 
 class SecretController extends Controller
 {
-    public function show(Secret $secret)
+    public function show()
     {
         request()->validate([
-            's' => 'required|string',
+            'd' => 'required|string',
         ]);
+
+        try {
+            $decryptedData = LaravelCrypt::decryptString(request()->d);
+            $decryptedData = json_decode($decryptedData, true);
+        } catch (Throwable $th) {
+            abort(404);
+        }
+
+        if (!$decryptedData) {
+            abort(404);
+        }
+
+        $secret = Secret::findOrFail($decryptedData['secret_id']);
 
         if ($secret->valid_until && $secret->valid_until < now()) {
             $secret->delete();
@@ -21,7 +35,7 @@ class SecretController extends Controller
         }
 
         return view('secrets.show', [
-            'decryption_key' => request()->s,
+            'decryption_key' => $decryptedData['secret_key'],
             'secret' => [
                 'id' => $secret->id,
                 'requires_password' => $secret->requires_password,
@@ -39,8 +53,7 @@ class SecretController extends Controller
     {
         $validator = Validator::make(request()->all(), [
             'content' => 'required|string|max:200000',
-            'password' => 'nullable|string|max:255',
-            'valid_for' => 'nullable|integer|min:1',
+            'password' => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -58,25 +71,20 @@ class SecretController extends Controller
         $secret = Secret::create([
             'encrypted_content' => $encryptedContent,
             'requires_password' => !is_null(request()->password),
-            'valid_until' => request()->valid_for ? now()->addMinutes((int) request()->valid_for) : null,
         ]);
 
-        return redirect()->route('secrets.share', ['secret' => $secret->id, 's' => $encryptionKey]);
+        // Encrypt the data
+        $data = json_encode(['secret_id' => $secret->id, 'secret_key' => $encryptionKey]);
+        $encryptedData = LaravelCrypt::encryptString($data);
+
+        return redirect()->route('secrets.share', ['d' => $encryptedData]);
     }
 
-    public function share(Secret $secret)
+    public function share()
     {
-        $key = request()->query('s');
-
-        if (!$key) {
-            abort(404);
-        }
-
         return view('secrets.share', [
             'message' => 'Secret created successfully',
-            'id' => $secret->id,
-            'secret' => $key,
-            'url' => route('secrets.show', $secret->id) . '?s=' . $key,
+            'url' => route('secrets.show') . '?d=' . request()->d,
         ]);
     }
 
@@ -84,7 +92,7 @@ class SecretController extends Controller
     {
         request()->validate([
             's' => 'required|string|size:64',
-            'password' => 'nullable|string|max:255',
+            'password' => 'nullable|string|max:100',
         ]);
 
         if ($this->isExpired($secret)) {
@@ -92,7 +100,7 @@ class SecretController extends Controller
         }
 
         if ($secret->requires_password && !request()->password) {
-            return response()->json(['error' => 'Password is required'], 401);
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
         // Slow down decryption to prevent brute force attacks
@@ -106,7 +114,7 @@ class SecretController extends Controller
             );
         } catch (Throwable $th) {
             app('log')->error('Error decrypting Secret');
-            abort(401);
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
         if ($decrypted_content === false) {
@@ -123,12 +131,7 @@ class SecretController extends Controller
 
     protected function isExpired(Secret $secret)
     {
-        if ($secret->created_at->addDays(30) < now()) {
-            $secret->delete();
-            return true;
-        }
-
-        if ($secret->valid_until && $secret->valid_until < now()) {
+        if ($secret->created_at->addMinutes((int) config('app.secrets_lifetime')) < now()) {
             $secret->delete();
             return true;
         }
