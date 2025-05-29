@@ -54,6 +54,7 @@
         const revealBtn = document.getElementById('reveal-btn');
         const copyBtn = document.getElementById('copy-btn');
         const passwordSection = document.getElementById('password-section');
+        const passwordInput = document.getElementById('password');
         let isRevealed = false;
         let secretContent = null;
         let decryptedContent = null;
@@ -61,6 +62,16 @@
 
         if (@json($secret['requires_password'])) {
             document.getElementById('password').focus();
+        }
+
+        // Add Enter key event listener for password input
+        if (passwordInput) {
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    revealBtn.click();
+                }
+            });
         }
 
         revealBtn.addEventListener('click', async function() {
