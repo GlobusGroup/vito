@@ -84,7 +84,7 @@ class SecretController extends Controller
     public function decrypt(Request $request, Secret $secret)
     {
         $request->validate([
-            's' => 'required|string',
+            's' => 'required|string|size:64',
             'password' => 'nullable|string|max:255',
         ]);
 
@@ -110,7 +110,7 @@ class SecretController extends Controller
             );
         } catch (Throwable $th) {
             app('log')->error('Error decrypting Secret');
-            abort(500);
+            abort(401);
         }
 
         if ($decrypted_content === false) {
