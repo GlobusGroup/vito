@@ -17,7 +17,9 @@ class Crypt
         $iv = random_bytes(16);
         $key = self::deriveKey($encryptionKey, $salt, $password);
         $encrypted = openssl_encrypt($plaintext, $method, $key, OPENSSL_RAW_DATA, $iv);
-        return base64_encode($salt . $iv . $encrypted);
+        $mac = hash_hmac('sha256', $salt . $iv . $encrypted, $key, true);
+
+        return base64_encode($salt . $iv . $mac . $encrypted);
     }
 
     public static function decryptString(string $encrypted, string $encryptionKey, string $password = '')
@@ -26,8 +28,15 @@ class Crypt
         $data = base64_decode($encrypted);
         $salt = substr($data, 0, 16);
         $iv = substr($data, 16, 16);
-        $ciphertext = substr($data, 32);
+        $mac = substr($data, 32, 32);
+        $ciphertext = substr($data, 64);
         $key = self::deriveKey($encryptionKey, $salt, $password);
+        $calculated_mac = hash_hmac('sha256', $salt . $iv . $ciphertext, $key, true);
+
+        if (!hash_equals($mac, $calculated_mac)) {
+            return false;
+        }
+
         return openssl_decrypt($ciphertext, $method, $key, OPENSSL_RAW_DATA, $iv);
     }
 }
