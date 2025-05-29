@@ -6,13 +6,13 @@ class Crypt
 {
     const DEFAULT_PASSWORD = 'no_password_specified';
 
-    protected static function deriveKey($password, $salt, $additionalPassword = '')
+    protected static function deriveKey($password, $salt, $additionalPassword)
     {
         $combined = $password . $additionalPassword;
         return hash_pbkdf2('sha256', $combined, $salt, 100000, 32, true);
     }
 
-    public static function encryptString(string $plaintext, string $encryptionKey, string $password = '')
+    public static function encryptString(string $plaintext, string $encryptionKey, string $password)
     {
         $method = 'aes-256-cbc';
         $salt = random_bytes(16);
@@ -24,7 +24,7 @@ class Crypt
         return base64_encode($salt . $iv . $mac . $encrypted);
     }
 
-    public static function decryptString(string $encrypted, string $encryptionKey, string $password = '')
+    public static function decryptString(string $encrypted, string $encryptionKey, string $password)
     {
         $method = 'aes-256-cbc';
         $data = base64_decode($encrypted);
