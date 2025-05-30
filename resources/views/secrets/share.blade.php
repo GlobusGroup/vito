@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @php
-    $url = route('secrets.show') . '?d=' . session()->get('encrypted_data');
+    $host = request()->getHost();
+    $url = 'https://' . $host . '/secrets/show?d=' . session()->get('encrypted_data');
 @endphp
 
 @section('content')

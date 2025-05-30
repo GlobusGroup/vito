@@ -10,7 +10,7 @@
     {{-- Main Form Card --}}
     <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
         <div class="px-8 pt-2 pb-10">
-            <form action="{{ route('secrets.store') }}" method="POST" class="space-y-8">
+            <form action="/secrets" method="POST" class="space-y-8">
                 @csrf
 
                 {{-- Secret Content Section --}}
