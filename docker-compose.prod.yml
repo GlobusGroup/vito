@@ -1,0 +1,9 @@
+# This is the production docker-compose file - it is not to be used for development
+services:
+  app:
+    image: globusgroup/vito:latest
+    restart: unless-stopped
+    volumes:
+      - ./storage:/var/www/html/storage
+    ports:
+      - "9998:80"
