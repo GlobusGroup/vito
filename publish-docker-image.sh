@@ -2,6 +2,8 @@
 
 # Get version from argument or use 'latest'
 VERSION=${1:-latest}
+# Default to globusgroup if no username is provided
+DOCKER_USERNAME=${2:-globusgroup}
 
 echo "Building and pushing docker image for version: $VERSION"
 
@@ -13,8 +15,8 @@ docker buildx use mybuilder
 docker buildx build \
     --platform linux/amd64,linux/arm64 \
     --progress=plain \
-    -t globusgroup/vito:$VERSION \
-    -t globusgroup/vito:latest \
+    -t $DOCKER_USERNAME/vito:$VERSION \
+    -t $DOCKER_USERNAME/vito:latest \
     -f docker/production/Dockerfile \
     --push \
     .
