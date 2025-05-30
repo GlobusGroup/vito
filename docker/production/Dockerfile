@@ -68,8 +68,8 @@ RUN apk add --no-cache \
 # Create necessary directories
 RUN mkdir -p /run/php /var/www/html/public /etc/php83/php-fpm.d /etc/caddy
 
-COPY ./docker/alpine/www.conf /etc/php83/php-fpm.d/www.conf
-COPY ./docker/alpine/Caddyfile /etc/caddy/Caddyfile
+COPY ./docker/production/www.conf /etc/php83/php-fpm.d/www.conf
+COPY ./docker/production/Caddyfile /etc/caddy/Caddyfile
 
 # Set timezone
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -94,9 +94,9 @@ RUN rm -rf /var/www/html/.env /var/www/html/.git /var/www/html/node_modules /var
 RUN echo "* * * * * cd /var/www/html && php artisan schedule:run >> /dev/null 2>&1" | crontab -u vito -
 
 # Copy configuration files
-COPY ./docker/alpine/start-container /usr/local/bin/start-container
-COPY ./docker/alpine/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY ./docker/alpine/php.ini /etc/php83/conf.d/99-vito.ini
+COPY ./docker/production/start-container /usr/local/bin/start-container
+COPY ./docker/production/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./docker/production/php.ini /etc/php83/conf.d/99-vito.ini
 RUN chmod +x /usr/local/bin/start-container
 
 # Create supervisor log directory

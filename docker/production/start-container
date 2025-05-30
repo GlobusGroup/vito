@@ -27,10 +27,6 @@ EOF
 echo "https://vito.globusdev.com"
 echo "================================================"
 
-
-
-
-
 export APP_URL=/
 export ASSET_URL=/
 

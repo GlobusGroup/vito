@@ -1,0 +1,70 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/development/Dockerfile
+    image: laravel-dev:latest
+    container_name: laravel-app-dev
+    ports:
+      - "8080:80"       # Caddy web server
+      - "5173:5173"     # Vite dev server
+    volumes:
+      # Mount the application code, but exclude vendor and node_modules
+      - .:/var/www/html
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+      # Persist storage and cache between container restarts
+      - storage:/var/www/html/storage
+      - cache:/var/www/html/bootstrap/cache
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - LOG_CHANNEL=stack
+      - LOG_LEVEL=debug
+      - VITE_HOST=0.0.0.0
+    networks:
+      - laravel-dev
+    # depends_on:
+      # - mysql
+      # - redis
+
+  # mysql:
+  #   image: mysql:8.0-alpine
+  #   container_name: laravel-mysql-dev
+  #   ports:
+  #     - "3306:3306"
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-password}
+  #     MYSQL_DATABASE: ${DB_DATABASE:-laravel}
+  #     MYSQL_USER: ${DB_USERNAME:-laravel}
+  #     MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+  #   volumes:
+  #     - mysql-data:/var/lib/mysql
+  #   networks:
+  #     - laravel-dev
+
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: laravel-redis-dev
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - laravel-dev
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: laravel-mailpit-dev
+    ports:
+      - "1025:1025"     # SMTP port
+      - "8025:8025"     # Web UI
+    networks:
+      - laravel-dev
+
+networks:
+  laravel-dev:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  storage:
+  cache:

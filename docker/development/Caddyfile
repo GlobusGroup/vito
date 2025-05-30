@@ -1,0 +1,65 @@
+{
+    # Development mode - disable automatic HTTPS
+    auto_https off
+    # Enable debug logging
+    debug
+}
+
+:80 {
+    # Set the root directory
+    root * /var/www/html/public
+
+    # Enable file server with directory browsing for development
+    file_server {
+        browse
+    }
+
+    # PHP-FPM configuration
+    php_fastcgi unix//run/php/php83-fpm.sock {
+        # Split path for proper PATH_INFO
+        split .php
+        # Set the index file
+        index index.php
+        # Development: show errors
+        env APP_ENV local
+        env APP_DEBUG true
+    }
+
+    # Handle Vite HMR WebSocket connections
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websockets localhost:5173
+
+    # Proxy Vite assets in development
+    handle /build/* {
+        reverse_proxy localhost:5173
+    }
+    handle /@vite/* {
+        reverse_proxy localhost:5173
+    }
+    handle /node_modules/* {
+        reverse_proxy localhost:5173
+    }
+
+    # Logging for development
+    log {
+        output file /var/log/caddy/access.log
+        format console
+    }
+
+    # Compression
+    encode zstd gzip
+
+    # Security headers (relaxed for development)
+    header {
+        # Allow all origins for development
+        Access-Control-Allow-Origin *
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        Access-Control-Allow-Headers *
+        # Remove security headers that might interfere with development
+        -X-Frame-Options
+        -Content-Security-Policy
+    }
+}
