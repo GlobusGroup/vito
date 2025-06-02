@@ -13,10 +13,12 @@ class Secret extends Model
     protected $fillable = [
         'encrypted_content',
         'requires_password',
+        'expires_at',
     ];
 
     protected $casts = [
         'requires_password' => 'boolean',
+        'expires_at' => 'datetime',
     ];
 
     protected $primaryKey = 'id';
@@ -29,11 +31,16 @@ class Secret extends Model
 
         static::creating(function ($model) {
             $model->id = (string) Str::uuid();
+            
+            // Set default expiry time if not provided
+            if (!$model->expires_at) {
+                $model->expires_at = now()->addMinutes((int) config('app.secrets_lifetime'));
+            }
         });
     }
 
     public function isExpired()
     {
-        return $this->created_at->addMinutes((int) config('app.secrets_lifetime')) < now();
+        return $this->expires_at < now();
     }
 }

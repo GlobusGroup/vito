@@ -46,6 +46,7 @@ class SecretController extends Controller
         $secret = Secret::create([
             'encrypted_content' => $encryptedContent,
             'requires_password' => !is_null(request()->password),
+            'expires_at' => now()->addMinutes((int) config('app.secrets_lifetime')),
         ]);
 
         // Encrypt the data and flash it in the session

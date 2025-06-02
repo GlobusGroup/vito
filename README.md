@@ -215,6 +215,60 @@ php artisan test
 ./vendor/bin/pint
 ```
 
+## 🔌 API
+
+Vito provides a REST API for programmatic secret creation.
+
+### Create Secret
+
+**Endpoint:** `POST /api/v1/secrets`
+
+**Headers:**
+- `Content-Type: application/json`
+- `Accept: application/json`
+
+**Request Body:**
+```json
+{
+  "content": "Your secret content here",
+  "password": "optional_password",
+  "expires_in_minutes": 120
+}
+```
+
+**Parameters:**
+- `content` (required): The secret content to encrypt (max 200,000 characters)
+- `password` (optional): Additional password protection (max 100 characters)
+- `expires_in_minutes` (optional): Custom expiry time in minutes (1-10080, default: 60)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid-of-secret",
+    "share_url": "https://your-domain.com/secrets/show?d=encrypted_data",
+    "expires_at": "2025-06-02T12:00:00.000000Z",
+    "expires_in_minutes": 120,
+    "requires_password": true
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X POST https://your-domain.com/api/v1/secrets \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "content": "My secret API key: sk-1234567890",
+    "password": "mypassword",
+    "expires_in_minutes": 30
+  }'
+```
+
+**Rate Limiting:** 60 requests per minute per IP address.
+
 ## 📝 How It Works
 
 1. **Secret Creation**: User enters sensitive content and optional password
