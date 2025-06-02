@@ -103,7 +103,10 @@ class SecretService
     public function decryptSecretContent(Secret $secret, string $encryptionKey, ?string $password = null): string
     {
         // Slow down decryption to prevent brute force attacks
-        usleep(random_int(400_000, 600_000));
+        // don't sleep in tests
+        if (!app()->environment('testing')) {
+            usleep(random_int(400_000, 600_000));
+        }
 
         try {
             $decryptedContent = Crypt::decryptString(
