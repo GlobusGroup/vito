@@ -38,6 +38,19 @@ class SecretServiceTest extends TestCase
     }
 
     /** @test */
+    public function it_aborts_with_404_when_decrypted_data_is_invalid_json()
+    {
+        // Test line 83: when json_decode returns null due to invalid JSON
+        // This tests the condition: if (!$decryptedData) { abort(404); }
+        $invalidJsonString = 'this is not valid json at all';
+        $encryptedInvalidJson = LaravelCrypt::encryptString($invalidJsonString);
+        
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
+
+        $this->secretService->decryptPayload($encryptedInvalidJson);
+    }
+
+    /** @test */
     public function it_successfully_decrypts_valid_payload()
     {
         $validData = ['secret_id' => 'test-id', 'secret_key' => 'test-key'];
