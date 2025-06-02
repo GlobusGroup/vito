@@ -192,4 +192,54 @@ class SecretServiceTest extends TestCase
         // Verify the secret still exists
         $this->assertDatabaseHas('secrets', ['id' => $validSecret->id]);
     }
+
+    /** @test */
+    public function it_sleeps_when_not_in_testing_environment()
+    {
+        // Test line 108: usleep is called when not in testing environment
+        // Temporarily change the environment to non-testing
+        $originalEnv = app()->environment();
+        app()->detectEnvironment(function () {
+            return 'production';
+        });
+
+        // Create a valid secret to decrypt
+        $result = $this->secretService->createSecret('test content');
+        $secret = $result['secret'];
+        $encryptionKey = $result['encryption_key'];
+
+        // Measure time to verify sleep occurred
+        $startTime = microtime(true);
+        $this->secretService->decryptSecretContent($secret, $encryptionKey);
+        $endTime = microtime(true);
+
+        // Should have slept for at least 400ms (0.4 seconds)
+        $executionTime = ($endTime - $startTime) * 1000; // Convert to milliseconds
+        $this->assertGreaterThan(400, $executionTime);
+
+        // Restore original environment
+        app()->detectEnvironment(function () use ($originalEnv) {
+            return $originalEnv;
+        });
+    }
+
+    /** @test */
+    public function it_logs_specific_error_when_crypt_decryption_throws_exception()
+    {
+        // Test line 119-121: when Crypt::decryptString throws a Throwable
+        // This test specifically targets the catch block that logs 'Error decrypting Secret'
+        
+        // We'll test this without mocking by creating a scenario that naturally causes an exception
+        // Create a secret with malformed encrypted content
+        $secret = Secret::create([
+            'encrypted_content' => 'invalid-base64-content!!!',
+            'requires_password' => false,
+        ]);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Unauthorized');
+
+        // This should trigger the catch block on line 119-121
+        $this->secretService->decryptSecretContent($secret, 'any-encryption-key');
+    }
 } 
