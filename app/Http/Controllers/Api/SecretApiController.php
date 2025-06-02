@@ -48,9 +48,9 @@ class SecretApiController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'id' => $secret->id,
                 'share_url' => $shareUrl,
                 'expires_at' => $secret->expires_at->toISOString(),
+                'expires_on' => $secret->expires_at->format('d/m/Y H:i'),
                 'expires_in_minutes' => $expiresInMinutes,
                 'requires_password' => $secret->requires_password,
             ]

@@ -246,9 +246,9 @@ Vito provides a REST API for programmatic secret creation.
 {
   "success": true,
   "data": {
-    "id": "uuid-of-secret",
     "share_url": "https://your-domain.com/secrets/show?d=encrypted_data",
     "expires_at": "2025-06-02T12:00:00.000000Z",
+    "expires_on": "02/06/2025 12:00",
     "expires_in_minutes": 120,
     "requires_password": true
   }
