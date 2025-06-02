@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Secret;
 use App\Services\SecretService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Session;
@@ -375,6 +374,9 @@ class SecretWebTest extends TestCase
     
     public function test_it_respects_rate_limiting_on_decrypt()
     {
+        // In this test we need the CSRF token, so we can test the throttling middleware
+        Session::start();
+
         // For rate limiting test, we need to keep throttle middleware but avoid CSRF
         // We'll use a session-based approach to simulate proper CSRF tokens
         
@@ -386,8 +388,9 @@ class SecretWebTest extends TestCase
             $encryptionKey = $result['encryption_key'];
             $encryptedData = $this->secretService->generateSharingData($secret->id, $encryptionKey);
 
-            $response = $this->from('/secrets/show')
+            $response = $this
                 ->postJson('/secrets/decrypt', [
+                    '_token' => csrf_token(),
                     'd' => $encryptedData,
                 ]);
             $response->assertStatus(200);
@@ -400,8 +403,9 @@ class SecretWebTest extends TestCase
         $encryptedData = $this->secretService->generateSharingData($secret->id, $encryptionKey);
 
         // The 21st request should be rate limited
-        $response = $this->from('/secrets/show')
+        $response = $this
             ->postJson('/secrets/decrypt', [
+                '_token' => csrf_token(),
                 'd' => $encryptedData,
             ]);
 

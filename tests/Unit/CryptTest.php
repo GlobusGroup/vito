@@ -4,7 +4,7 @@ namespace Tests\Unit;
 
 use App\Crypt;
 use Illuminate\Support\Str;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class CryptTest extends TestCase
 {

@@ -37,6 +37,8 @@ class Crypt
     protected static function deriveKey($password, $salt, $additionalPassword)
     {
         $combined = $password . $additionalPassword;
-        return hash_pbkdf2('sha256', $combined, $salt, 100000, 32, true);
+        $iterations = config('app.crypt_iterations');
+
+        return hash_pbkdf2('sha256', $combined, $salt, $iterations, 32, true);
     }
 }

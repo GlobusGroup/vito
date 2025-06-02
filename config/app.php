@@ -124,4 +124,5 @@ return [
     ],
 
     'secrets_lifetime' => env('SECRETS_LIFETIME_IN_MINUTES', 60),
+    'crypt_iterations' => env('CRYPT_ITERATIONS', 100000),
 ];
