@@ -25,8 +25,8 @@ class SecretServiceTest extends TestCase
         config(['app.secrets_lifetime' => 60]); // 60 minutes
     }
 
-    /** @test */
-    public function it_aborts_with_404_when_laravel_crypt_fails()
+    
+    public function test_it_aborts_with_404_when_laravel_crypt_fails()
     {
         // Test the catch block: when LaravelCrypt::decryptString throws an exception
         // This tests lines 82-84 in SecretService: catch (Throwable $th) { abort(404); }
@@ -37,8 +37,8 @@ class SecretServiceTest extends TestCase
         $this->secretService->decryptPayload($invalidEncryptedData);
     }
 
-    /** @test */
-    public function it_aborts_with_404_when_decrypted_data_is_invalid_json()
+    
+    public function test_it_aborts_with_404_when_decrypted_data_is_invalid_json()
     {
         // Test line 83: when json_decode returns null due to invalid JSON
         // This tests the condition: if (!$decryptedData) { abort(404); }
@@ -50,8 +50,8 @@ class SecretServiceTest extends TestCase
         $this->secretService->decryptPayload($encryptedInvalidJson);
     }
 
-    /** @test */
-    public function it_successfully_decrypts_valid_payload()
+    
+    public function test_it_successfully_decrypts_valid_payload()
     {
         $validData = ['secret_id' => 'test-id', 'secret_key' => 'test-key'];
         $encryptedData = LaravelCrypt::encryptString(json_encode($validData));
@@ -61,8 +61,8 @@ class SecretServiceTest extends TestCase
         $this->assertEquals($validData, $result);
     }
 
-    /** @test */
-    public function it_throws_unauthorized_exception_when_crypt_decryption_fails()
+    
+    public function test_it_throws_unauthorized_exception_when_crypt_decryption_fails()
     {
         // Mock the Log facade to verify error logging
         Log::shouldReceive('error')->once()->with('User provided an invalid password');
@@ -80,8 +80,8 @@ class SecretServiceTest extends TestCase
         $this->secretService->decryptSecretContent($secret, 'invalid-key');
     }
 
-    /** @test */
-    public function it_throws_unauthorized_exception_when_decrypted_content_is_false()
+    
+    public function test_it_throws_unauthorized_exception_when_decrypted_content_is_false()
     {
         // Mock the Log facade to verify error logging
         Log::shouldReceive('error')->once()->with('User provided an invalid password');
@@ -98,8 +98,8 @@ class SecretServiceTest extends TestCase
         $this->secretService->decryptSecretContent($secret, $encryptionKey, 'wrong-password');
     }
 
-    /** @test */
-    public function it_successfully_decrypts_content_with_correct_credentials()
+    
+    public function test_it_successfully_decrypts_content_with_correct_credentials()
     {
         $originalContent = 'This is a test secret';
         
@@ -114,8 +114,8 @@ class SecretServiceTest extends TestCase
         $this->assertEquals($originalContent, $decryptedContent);
     }
 
-    /** @test */
-    public function it_successfully_decrypts_content_without_password()
+    
+    public function test_it_successfully_decrypts_content_without_password()
     {
         $originalContent = 'This is a test secret without password';
         
@@ -130,8 +130,8 @@ class SecretServiceTest extends TestCase
         $this->assertEquals($originalContent, $decryptedContent);
     }
 
-    /** @test */
-    public function it_generates_valid_sharing_data()
+    
+    public function test_it_generates_valid_sharing_data()
     {
         $secretId = 'test-secret-id';
         $encryptionKey = 'test-encryption-key';
@@ -147,8 +147,8 @@ class SecretServiceTest extends TestCase
         ], $decryptedData);
     }
 
-    /** @test */
-    public function it_generates_valid_share_url()
+    
+    public function test_it_generates_valid_share_url()
     {
         $encryptedData = 'test-encrypted-data';
         
@@ -158,8 +158,8 @@ class SecretServiceTest extends TestCase
         $this->assertEquals($expectedUrl, $shareUrl);
     }
 
-    /** @test */
-    public function it_deletes_expired_secret_and_aborts()
+    
+    public function test_it_deletes_expired_secret_and_aborts()
     {
         // Create an expired secret
         $expiredSecret = Secret::create([
@@ -176,8 +176,8 @@ class SecretServiceTest extends TestCase
         $this->assertDatabaseMissing('secrets', ['id' => $expiredSecret->id]);
     }
 
-    /** @test */
-    public function it_does_not_abort_for_valid_secret()
+    
+    public function test_it_does_not_abort_for_valid_secret()
     {
         // Create a valid secret
         $validSecret = Secret::create([
@@ -193,8 +193,8 @@ class SecretServiceTest extends TestCase
         $this->assertDatabaseHas('secrets', ['id' => $validSecret->id]);
     }
 
-    /** @test */
-    public function it_sleeps_when_not_in_testing_environment()
+    
+    public function test_it_sleeps_when_not_in_testing_environment()
     {
         // Test line 108: usleep is called when not in testing environment
         // Temporarily change the environment to non-testing
@@ -223,8 +223,8 @@ class SecretServiceTest extends TestCase
         });
     }
 
-    /** @test */
-    public function it_logs_specific_error_when_crypt_decryption_throws_exception()
+    
+    public function test_it_logs_specific_error_when_crypt_decryption_throws_exception()
     {
         // Test line 119-121: when Crypt::decryptString throws a Throwable
         // This test specifically targets the catch block that logs 'Error decrypting Secret'

@@ -18,8 +18,8 @@ class SecretApiTest extends TestCase
         config(['app.secrets_lifetime' => 60]); // 60 minutes
     }
 
-    /** @test */
-    public function it_can_create_a_secret_via_api()
+    
+    public function test_it_can_create_a_secret_via_api()
     {
         $response = $this->postJson('/api/v1/secrets', [
             'content' => 'This is a test secret',
@@ -51,8 +51,8 @@ class SecretApiTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function it_can_create_a_password_protected_secret_via_api()
+    
+    public function test_it_can_create_a_password_protected_secret_via_api()
     {
         $response = $this->postJson('/api/v1/secrets', [
             'content' => 'This is a password protected secret',
@@ -84,8 +84,8 @@ class SecretApiTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function it_can_create_a_secret_with_custom_expiry_via_api()
+    
+    public function test_it_can_create_a_secret_with_custom_expiry_via_api()
     {
         $customExpiryMinutes = 120;
 
@@ -103,8 +103,8 @@ class SecretApiTest extends TestCase
             ]);
     }
 
-    /** @test */
-    public function it_validates_required_content_field()
+    
+    public function test_it_validates_required_content_field()
     {
         $response = $this->postJson('/api/v1/secrets', [
             'password' => 'test',
@@ -114,8 +114,8 @@ class SecretApiTest extends TestCase
             ->assertJsonValidationErrors(['content']);
     }
 
-    /** @test */
-    public function it_validates_content_max_length()
+    
+    public function test_it_validates_content_max_length()
     {
         $response = $this->postJson('/api/v1/secrets', [
             'content' => str_repeat('a', 200001), // Exceeds 200000 character limit
@@ -125,8 +125,8 @@ class SecretApiTest extends TestCase
             ->assertJsonValidationErrors(['content']);
     }
 
-    /** @test */
-    public function it_validates_password_max_length()
+    
+    public function test_it_validates_password_max_length()
     {
         $response = $this->postJson('/api/v1/secrets', [
             'content' => 'Test content',
@@ -137,8 +137,8 @@ class SecretApiTest extends TestCase
             ->assertJsonValidationErrors(['password']);
     }
 
-    /** @test */
-    public function it_validates_expires_in_minutes_is_integer()
+    
+    public function test_it_validates_expires_in_minutes_is_integer()
     {
         $response = $this->postJson('/api/v1/secrets', [
             'content' => 'Test content',
@@ -149,8 +149,8 @@ class SecretApiTest extends TestCase
             ->assertJsonValidationErrors(['expires_in_minutes']);
     }
 
-    /** @test */
-    public function it_validates_expires_in_minutes_minimum_value()
+    
+    public function test_it_validates_expires_in_minutes_minimum_value()
     {
         $response = $this->postJson('/api/v1/secrets', [
             'content' => 'Test content',
@@ -161,8 +161,8 @@ class SecretApiTest extends TestCase
             ->assertJsonValidationErrors(['expires_in_minutes']);
     }
 
-    /** @test */
-    public function it_validates_expires_in_minutes_maximum_value()
+    
+    public function test_it_validates_expires_in_minutes_maximum_value()
     {
         $response = $this->postJson('/api/v1/secrets', [
             'content' => 'Test content',
@@ -173,8 +173,8 @@ class SecretApiTest extends TestCase
             ->assertJsonValidationErrors(['expires_in_minutes']);
     }
 
-    /** @test */
-    public function it_respects_rate_limiting()
+    
+    public function test_it_respects_rate_limiting()
     {
         // Make 10 requests (the limit)
         for ($i = 0; $i < 10; $i++) {
@@ -192,8 +192,8 @@ class SecretApiTest extends TestCase
         $response->assertStatus(429); // Too Many Requests
     }
 
-    /** @test */
-    public function it_generates_valid_share_url()
+    
+    public function test_it_generates_valid_share_url()
     {
         $response = $this->postJson('/api/v1/secrets', [
             'content' => 'Test secret for URL validation',
@@ -211,8 +211,8 @@ class SecretApiTest extends TestCase
         $this->assertNotEmpty($queryParams['d']);
     }
 
-    /** @test */
-    public function it_returns_proper_expires_at_format()
+    
+    public function test_it_returns_proper_expires_at_format()
     {
         $response = $this->postJson('/api/v1/secrets', [
             'content' => 'Test secret for date format',
