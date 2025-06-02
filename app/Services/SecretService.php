@@ -103,8 +103,7 @@ class SecretService
     public function decryptSecretContent(Secret $secret, string $encryptionKey, ?string $password = null): string
     {
         // Slow down decryption to prevent brute force attacks
-        // don't sleep in tests
-        if (!app()->environment('testing')) {
+        if (config('app.enable_secret_rate_limiting')) {
             usleep(random_int(400_000, 600_000));
         }
 

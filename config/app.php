@@ -125,4 +125,5 @@ return [
 
     'secrets_lifetime' => env('SECRETS_LIFETIME_IN_MINUTES', 60),
     'crypt_iterations' => env('CRYPT_ITERATIONS', 100000),
+    'enable_secret_rate_limiting' => env('ENABLE_SECRET_RATE_LIMITING', true),
 ];

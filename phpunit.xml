@@ -33,5 +33,6 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="CRYPT_ITERATIONS" value="11"/>
+        <env name="ENABLE_SECRET_RATE_LIMITING" value="false"/>
     </php>
 </phpunit>

@@ -194,14 +194,13 @@ class SecretServiceTest extends TestCase
     }
 
     
-    public function test_it_sleeps_when_not_in_testing_environment()
+    public function test_it_sleeps_when_rate_limiting_is_enabled()
     {
-        // Test line 108: usleep is called when not in testing environment
-        // Temporarily change the environment to non-testing
-        $originalEnv = app()->environment();
-        app()->detectEnvironment(function () {
-            return 'production';
-        });
+        // Test that usleep is called when rate limiting is enabled
+        // This tests the condition: if (config('app.enable_secret_rate_limiting'))
+        
+        // Enable rate limiting for this test
+        config(['app.enable_secret_rate_limiting' => true]);
 
         // Create a valid secret to decrypt
         $result = $this->secretService->createSecret('test content');
@@ -216,11 +215,30 @@ class SecretServiceTest extends TestCase
         // Should have slept for at least 400ms (0.4 seconds)
         $executionTime = ($endTime - $startTime) * 1000; // Convert to milliseconds
         $this->assertGreaterThan(400, $executionTime);
+    }
 
-        // Restore original environment
-        app()->detectEnvironment(function () use ($originalEnv) {
-            return $originalEnv;
-        });
+    
+    public function test_it_does_not_sleep_when_rate_limiting_is_disabled()
+    {
+        // Test that usleep is NOT called when rate limiting is disabled
+        // This tests the condition: if (config('app.enable_secret_rate_limiting'))
+        
+        // Disable rate limiting for this test
+        config(['app.enable_secret_rate_limiting' => false]);
+
+        // Create a valid secret to decrypt
+        $result = $this->secretService->createSecret('test content');
+        $secret = $result['secret'];
+        $encryptionKey = $result['encryption_key'];
+
+        // Measure time to verify sleep did NOT occur
+        $startTime = microtime(true);
+        $this->secretService->decryptSecretContent($secret, $encryptionKey);
+        $endTime = microtime(true);
+
+        // Should NOT have slept, so execution time should be very fast (less than 100ms)
+        $executionTime = ($endTime - $startTime) * 1000; // Convert to milliseconds
+        $this->assertLessThan(100, $executionTime);
     }
 
     
