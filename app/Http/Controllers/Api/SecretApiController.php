@@ -2,51 +2,48 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Crypt;
 use App\Http\Controllers\Controller;
-use App\Models\Secret;
+use App\Services\SecretService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt as LaravelCrypt;
 
 class SecretApiController extends Controller
 {
+    protected $secretService;
+
+    public function __construct(SecretService $secretService)
+    {
+        $this->secretService = $secretService;
+    }
+
     public function store(Request $request)
     {
-        $request->validate([
-            'content' => 'required|string|max:200000',
-            'password' => 'nullable|string|max:100',
-            'expires_in_minutes' => [
-                'nullable',
-                'integer',
-                'min:1',
-                'max:' . (24 * 60 * 5), // Maximum 5 days
-            ],
-        ]);
-
-        $encryptionKey = bin2hex(random_bytes(32));
-
-        $encryptedContent = Crypt::encryptString(
-            $request->content,
-            $encryptionKey,
-            $request->password ?? Crypt::DEFAULT_PASSWORD
+        $validationRules = array_merge(
+            SecretService::getCommonValidationRules(),
+            [
+                'expires_in_minutes' => [
+                    'nullable',
+                    'integer',
+                    'min:1',
+                    'max:' . (24 * 60 * 5), // Maximum 5 days
+                ],
+            ]
         );
 
-        // Calculate expiry time
-        $expiresInMinutes = $request->expires_in_minutes ?? (int) config('app.secrets_lifetime');
-        $expiresAt = now()->addMinutes($expiresInMinutes);
+        $request->validate($validationRules);
 
-        $secret = Secret::create([
-            'encrypted_content' => $encryptedContent,
-            'requires_password' => !is_null($request->password),
-            'expires_at' => $expiresAt,
-        ]);
+        $result = $this->secretService->createSecret(
+            $request->content,
+            $request->password,
+            $request->expires_in_minutes
+        );
 
-        // Create the sharing URL data
-        $data = json_encode(['secret_id' => $secret->id, 'secret_key' => $encryptionKey]);
-        $encryptedData = LaravelCrypt::encryptString($data);
-        
-        // Generate the full sharing URL
-        $shareUrl = url('/secrets/show?d=' . urlencode($encryptedData));
+        $secret = $result['secret'];
+        $encryptionKey = $result['encryption_key'];
+        $expiresInMinutes = $result['expires_in_minutes'];
+
+        // Generate the sharing URL
+        $encryptedData = $this->secretService->generateSharingData($secret->id, $encryptionKey);
+        $shareUrl = $this->secretService->generateShareUrl($encryptedData);
 
         return response()->json([
             'success' => true,
