@@ -1,5 +1,7 @@
 # Vito - Secure Secret Sharing
 
+[![Tests](https://github.com/GlobusGroup/vito/actions/workflows/tests.yml/badge.svg)](https://github.com/GlobusGroup/vito/actions/workflows/tests.yml)
+
 Vito is a secure, self-hosted secret sharing application built with Laravel. It allows users to share sensitive information like passwords, API keys, and confidential text through encrypted, single-use links that automatically expire.
 
 ![Vito Interface](https://github.com/GlobusGroup/vito/blob/main/.github/images/vito_screenshot_1.png?raw=true)
