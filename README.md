@@ -15,6 +15,49 @@ Vito is a secure, self-hosted secret sharing application built with Laravel. It 
 - **Rate Limiting**: Built-in protection against brute force attacks
 - **HMAC Verification**: Ensures data integrity and authenticity
 
+## 🌐 Deploy With Docker
+
+Vito includes a production-ready Docker setup using the pre-built image.
+
+1. **Download or copy/paste the production compose file**
+   ```bash
+   wget https://raw.githubusercontent.com/GlobusGroup/vito/main/docker-compose.prod.yml -O docker-compose.yml
+   ```
+
+   ```yaml
+   services:
+      app:
+        image: globusgroup/vito:latest
+        restart: unless-stopped
+        volumes:
+          - ./storage:/var/www/html/storage
+        ports:
+          - "9998:80"
+    ```
+
+2. **Create storage directory**
+   ```bash
+   mkdir -p storage
+   ```
+
+3. **Deploy with Docker Compose**
+   ```bash
+   docker compose  up -d
+   ```
+
+4. **Configure your reverse proxy**
+   
+   The application will be available on port 9998. **Important**: Vito MUST be run behind a reverse proxy that provides HTTPS support (such as Nginx, Caddy, or Traefik).
+
+   Example Caddy configuration (Caddyfile):
+   ```
+   your-domain.com {
+       reverse_proxy localhost:9998
+   }
+   ```
+   
+   Caddy automatically handles HTTPS certificates via Let's Encrypt, making it the simplest option for deployment.
+
 ## 🚀 Features
 
 - Clean, modern web interface built with Tailwind CSS
@@ -107,41 +150,7 @@ The Docker development setup includes:
 8. **Access the application**
    - Application: http://localhost:8000
 
-## 🌐 Production Deployment
-
-### Docker Production Deployment
-
-Vito includes a production-ready Docker setup using the pre-built image.
-
-1. **Download the production compose file**
-   ```bash
-   wget https://raw.githubusercontent.com/GlobusGroup/vito/main/docker-compose.prod.yml -O docker-compose.yml
-   ```
-
-2. **Create storage directory**
-   ```bash
-   mkdir -p storage
-   ```
-
-3. **Deploy with Docker Compose**
-   ```bash
-   docker compose  up -d
-   ```
-
-4. **Configure your reverse proxy**
-   
-   The application will be available on port 9998. **Important**: Vito MUST be run behind a reverse proxy that provides HTTPS support (such as Nginx, Caddy, or Traefik).
-
-   Example Caddy configuration (Caddyfile):
-   ```
-   your-domain.com {
-       reverse_proxy localhost:9998
-   }
-   ```
-   
-   Caddy automatically handles HTTPS certificates via Let's Encrypt, making it the simplest option for deployment.
-
-### Manual Production Deployment
+## 🌐 Manual Production Deployment
 
 For traditional server deployment:
 
