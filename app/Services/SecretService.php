@@ -5,7 +5,10 @@ namespace App\Services;
 use App\Crypt;
 use App\Models\Secret;
 use Illuminate\Support\Facades\Crypt as LaravelCrypt;
+use Illuminate\Support\Facades\DB;
 use Throwable;
+
+class SecretNotFoundException extends \Exception {}
 
 class SecretService
 {
@@ -87,42 +90,59 @@ class SecretService
     }
 
     /**
-     * Check if secret is valid or abort
-     */
-    public function checkIfSecretIsValidOrAbort(Secret $secret): void
-    {
-        if ($secret->isExpired()) {
-            $secret->delete();
-            abort(404);
-        }
-    }
-
-    /**
-     * Decrypt secret content with rate limiting protection
+     * Decrypt secret content with race condition protection
+     * 
+     * This method uses database transactions with row locking to ensure
+     * single-use enforcement, preventing race conditions where multiple
+     * simultaneous requests could access the same secret.
      */
     public function decryptSecretContent(Secret $secret, string $encryptionKey, ?string $password = null): string
     {
-        // Slow down decryption to prevent brute force attacks
-        if (config('app.enable_secret_rate_limiting')) {
-            usleep(random_int(400_000, 600_000));
+        // First check if the secret is expired and delete it immediately if so
+        // We do this outside the main transaction to ensure deletion happens
+        if ($secret->isExpired()) {
+            $secret->delete();
+            throw new SecretNotFoundException('Secret not found or already accessed');
         }
 
-        try {
-            $decryptedContent = Crypt::decryptString(
-                $secret->encrypted_content,
-                $encryptionKey,
-                $password ?? Crypt::DEFAULT_PASSWORD
-            );
-        } catch (Throwable $th) {
-            app('log')->error('Error decrypting Secret');
-            throw new \Exception('Unauthorized');
-        }
+        return DB::transaction(function () use ($secret, $encryptionKey, $password) {
+            // Lock the record for this transaction to prevent race conditions
+            $lockedSecret = Secret::where('id', $secret->id)->lockForUpdate()->first();
+            if (!$lockedSecret) {
+                throw new SecretNotFoundException('Secret not found or already accessed');
+            }
 
-        if ($decryptedContent === false) {
-            app('log')->error('User provided an invalid password');
-            throw new \Exception('Unauthorized');
-        }
+            // Double-check if the locked secret is expired (race condition protection)
+            if ($lockedSecret->isExpired()) {
+                $lockedSecret->delete();
+                throw new SecretNotFoundException('Secret not found or already accessed');
+            }
 
-        return $decryptedContent;
+            // Slow down decryption to prevent brute force attacks
+            if (config('app.enable_secret_rate_limiting')) {
+                usleep(random_int(400_000, 600_000));
+            }
+
+            try {
+                $decryptedContent = Crypt::decryptString(
+                    $lockedSecret->encrypted_content,
+                    $encryptionKey,
+                    $password ?? Crypt::DEFAULT_PASSWORD
+                );
+            } catch (Throwable $th) {
+                app('log')->error('Error decrypting Secret');
+                throw new \Exception('Unauthorized');
+            }
+
+            if ($decryptedContent === false) {
+                app('log')->error('User provided an invalid password');
+                throw new \Exception('Unauthorized');
+            }
+
+            // Delete immediately after successful decryption to ensure single-use
+            $lockedSecret->delete();
+
+            return $decryptedContent;
+        });
     }
 } 
