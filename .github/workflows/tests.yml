@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-version: [8.2, 8.3]
+
+    name: PHP ${{ matrix.php-version }} Tests
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: mbstring, dom, fileinfo, mysql, sqlite3
+        coverage: none
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php-version }}-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-suggest
+
+    - name: Copy .env
+      run: cp .env.example .env
+
+    - name: Generate application key
+      run: php artisan key:generate
+
+    - name: Create Database
+      run: |
+        mkdir -p database
+        touch database/database.sqlite
+
+    - name: Run tests
+      run: composer run-script test 
