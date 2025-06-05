@@ -90,17 +90,6 @@ class SecretService
     }
 
     /**
-     * Check if secret is valid or abort
-     */
-    public function checkIfSecretIsValidOrAbort(Secret $secret): void
-    {
-        if ($secret->isExpired()) {
-            $secret->delete();
-            abort(404);
-        }
-    }
-
-    /**
      * Decrypt secret content with race condition protection
      * 
      * This method uses database transactions with row locking to ensure

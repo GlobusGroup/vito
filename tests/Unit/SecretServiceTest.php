@@ -158,42 +158,6 @@ class SecretServiceTest extends TestCase
         $this->assertEquals($expectedUrl, $shareUrl);
     }
 
-    
-    public function test_it_deletes_expired_secret_and_aborts()
-    {
-        // Create an expired secret
-        $expiredSecret = Secret::create([
-            'encrypted_content' => 'test-content',
-            'requires_password' => false,
-            'expires_at' => now()->subMinutes(1), // 1 minute ago
-        ]);
-
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
-
-        $this->secretService->checkIfSecretIsValidOrAbort($expiredSecret);
-
-        // Verify the secret was deleted
-        $this->assertDatabaseMissing('secrets', ['id' => $expiredSecret->id]);
-    }
-
-    
-    public function test_it_does_not_abort_for_valid_secret()
-    {
-        // Create a valid secret
-        $validSecret = Secret::create([
-            'encrypted_content' => 'test-content',
-            'requires_password' => false,
-            'expires_at' => now()->addMinutes(30), // 30 minutes from now
-        ]);
-
-        // Should not throw any exception
-        $this->secretService->checkIfSecretIsValidOrAbort($validSecret);
-
-        // Verify the secret still exists
-        $this->assertDatabaseHas('secrets', ['id' => $validSecret->id]);
-    }
-
-    
     public function test_it_sleeps_when_rate_limiting_is_enabled()
     {
         // Test that usleep is called when rate limiting is enabled

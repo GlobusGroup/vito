@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Secret;
-use App\Services\SecretService;
 use App\Services\SecretNotFoundException;
+use App\Services\SecretService;
 use Throwable;
 
 class SecretController extends Controller
@@ -22,7 +22,10 @@ class SecretController extends Controller
 
         $decryptedData = $this->secretService->decryptPayload(request()->d);
         $secret = Secret::findOrFail($decryptedData['secret_id']);
-        $this->secretService->checkIfSecretIsValidOrAbort($secret);
+        if ($secret->isExpired()) {
+            $secret->delete();
+            abort(404);
+        }
 
         return view('secrets.show', [
             'd' => request()->d,
