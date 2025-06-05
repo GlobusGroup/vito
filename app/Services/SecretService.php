@@ -6,9 +6,12 @@ use App\Crypt;
 use App\Models\Secret;
 use Illuminate\Support\Facades\Crypt as LaravelCrypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Request;
 use Throwable;
 
 class SecretNotFoundException extends \Exception {}
+class TooManyAttemptsException extends \Exception {}
 
 class SecretService
 {
@@ -90,6 +93,37 @@ class SecretService
     }
 
     /**
+     * Check rate limits for secret decryption
+     * 
+     * @param Secret $secret
+     * @throws TooManyAttemptsException
+     */
+    private function checkRateLimits(Secret $secret): void
+    {
+        if (!config('app.enable_secret_rate_limiting')) {
+            return;
+        }
+
+        $ip = Request::ip();
+        $secretKey = 'decrypt:secret:' . $secret->id;
+        $ipKey = 'decrypt:ip:' . $ip;
+
+        // Per-secret rate limiting: 5 attempts per secret
+        if (RateLimiter::tooManyAttempts($secretKey, config('app.secret_rate_limit_attempts', 5))) {
+            throw new TooManyAttemptsException('Too many attempts for this secret');
+        }
+
+        // Per-IP rate limiting: 20 attempts per hour
+        if (RateLimiter::tooManyAttempts($ipKey, config('app.ip_rate_limit_attempts', 20))) {
+            throw new TooManyAttemptsException('Too many attempts from this IP address');
+        }
+
+        // Increment counters
+        RateLimiter::hit($secretKey, config('app.secret_rate_limit_decay', 60)); // 1 hour decay
+        RateLimiter::hit($ipKey, config('app.ip_rate_limit_decay', 3600)); // 1 hour decay
+    }
+
+    /**
      * Decrypt secret content with race condition protection
      * 
      * This method uses database transactions with row locking to ensure
@@ -118,10 +152,8 @@ class SecretService
                 throw new SecretNotFoundException('Secret not found or already accessed');
             }
 
-            // Slow down decryption to prevent brute force attacks
-            if (config('app.enable_secret_rate_limiting')) {
-                usleep(random_int(400_000, 600_000));
-            }
+            // Check rate limits before attempting decryption
+            $this->checkRateLimits($lockedSecret);
 
             try {
                 $decryptedContent = Crypt::decryptString(

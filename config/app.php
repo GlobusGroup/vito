@@ -126,4 +126,8 @@ return [
     'secrets_lifetime' => env('SECRETS_LIFETIME_IN_MINUTES', 60),
     'crypt_iterations' => env('CRYPT_ITERATIONS', 100000),
     'enable_secret_rate_limiting' => env('ENABLE_SECRET_RATE_LIMITING', true),
+    'secret_rate_limit_attempts' => env('SECRET_RATE_LIMIT_ATTEMPTS', 5),
+    'secret_rate_limit_decay' => env('SECRET_RATE_LIMIT_DECAY', 3600), // 1 hour
+    'ip_rate_limit_attempts' => env('IP_RATE_LIMIT_ATTEMPTS', 20),
+    'ip_rate_limit_decay' => env('IP_RATE_LIMIT_DECAY', 3600), // 1 hour
 ];

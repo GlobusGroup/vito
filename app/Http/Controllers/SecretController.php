@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Secret;
 use App\Services\SecretNotFoundException;
 use App\Services\SecretService;
+use App\Services\TooManyAttemptsException;
 use Throwable;
 
 class SecretController extends Controller
@@ -89,6 +90,8 @@ class SecretController extends Controller
             );
         } catch (SecretNotFoundException $th) {
             return response()->json(['error' => 'Not Found'], 404);
+        } catch (TooManyAttemptsException $th) {
+            return response()->json(['error' => 'Too Many Attempts'], 429);
         } catch (Throwable $th) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }

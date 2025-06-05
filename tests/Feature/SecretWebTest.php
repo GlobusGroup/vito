@@ -412,6 +412,40 @@ class SecretWebTest extends TestCase
         $response->assertStatus(429); // Too Many Requests
     }
 
+    public function test_it_returns_429_when_rate_limit_exceeded_on_decrypt()
+    {
+        // Enable rate limiting for this test
+        config([
+            'app.enable_secret_rate_limiting' => true,
+            'app.secret_rate_limit_attempts' => 1, // Very low limit for testing
+        ]);
+
+        // Create a secret
+        $result = $this->secretService->createSecret('Test secret content');
+        $secret = $result['secret'];
+        $encryptionKey = $result['encryption_key'];
+
+        // Generate encrypted data
+        $encryptedData = $this->secretService->generateSharingData($secret->id, $encryptionKey);
+
+        // Simulate hitting the rate limit for this specific secret
+        $secretKey = 'decrypt:secret:' . $secret->id;
+        \Illuminate\Support\Facades\RateLimiter::hit($secretKey, 60);
+        \Illuminate\Support\Facades\RateLimiter::hit($secretKey, 60); // This should exceed the limit
+
+        $response = $this->withoutMiddleware()->postJson('/secrets/decrypt', [
+            'd' => $encryptedData,
+        ]);
+
+        $response->assertStatus(429)
+            ->assertJson([
+                'error' => 'Too Many Attempts'
+            ]);
+
+        // Verify the secret was NOT deleted due to rate limiting
+        $this->assertDatabaseHas('secrets', ['id' => $secret->id]);
+    }
+
     
     public function test_it_shows_terms_page()
     {

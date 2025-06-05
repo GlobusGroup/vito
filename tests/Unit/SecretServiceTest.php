@@ -4,9 +4,11 @@ namespace Tests\Unit;
 
 use App\Models\Secret;
 use App\Services\SecretService;
+use App\Services\TooManyAttemptsException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt as LaravelCrypt;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
 class SecretServiceTest extends TestCase
@@ -23,6 +25,19 @@ class SecretServiceTest extends TestCase
         
         // Set a default secrets lifetime for testing
         config(['app.secrets_lifetime' => 60]); // 60 minutes
+        
+        // Clear rate limiter state for clean tests
+        RateLimiter::clear('decrypt:secret:*');
+        RateLimiter::clear('decrypt:ip:*');
+    }
+
+    protected function tearDown(): void
+    {
+        // Clean up rate limiter state after each test
+        RateLimiter::clear('decrypt:secret:*');
+        RateLimiter::clear('decrypt:ip:*');
+        
+        parent::tearDown();
     }
 
     
@@ -158,35 +173,32 @@ class SecretServiceTest extends TestCase
         $this->assertEquals($expectedUrl, $shareUrl);
     }
 
-    public function test_it_sleeps_when_rate_limiting_is_enabled()
+    public function test_it_allows_decryption_when_rate_limiting_is_enabled_but_not_exceeded()
     {
-        // Test that usleep is called when rate limiting is enabled
-        // This tests the condition: if (config('app.enable_secret_rate_limiting'))
-        
         // Enable rate limiting for this test
-        config(['app.enable_secret_rate_limiting' => true]);
+        config([
+            'app.enable_secret_rate_limiting' => true,
+            'app.secret_rate_limit_attempts' => 5,
+            'app.ip_rate_limit_attempts' => 20,
+        ]);
+
+        // Clear any existing rate limits
+        RateLimiter::clear('decrypt:secret:*');
+        RateLimiter::clear('decrypt:ip:*');
 
         // Create a valid secret to decrypt
         $result = $this->secretService->createSecret('test content');
         $secret = $result['secret'];
         $encryptionKey = $result['encryption_key'];
 
-        // Measure time to verify sleep occurred
-        $startTime = microtime(true);
-        $this->secretService->decryptSecretContent($secret, $encryptionKey);
-        $endTime = microtime(true);
-
-        // Should have slept for at least 400ms (0.4 seconds)
-        $executionTime = ($endTime - $startTime) * 1000; // Convert to milliseconds
-        $this->assertGreaterThan(400, $executionTime);
+        // Should successfully decrypt when rate limits are not exceeded
+        $decryptedContent = $this->secretService->decryptSecretContent($secret, $encryptionKey);
+        $this->assertEquals('test content', $decryptedContent);
     }
 
     
-    public function test_it_does_not_sleep_when_rate_limiting_is_disabled()
+    public function test_it_does_not_apply_rate_limiting_when_disabled()
     {
-        // Test that usleep is NOT called when rate limiting is disabled
-        // This tests the condition: if (config('app.enable_secret_rate_limiting'))
-        
         // Disable rate limiting for this test
         config(['app.enable_secret_rate_limiting' => false]);
 
@@ -195,14 +207,92 @@ class SecretServiceTest extends TestCase
         $secret = $result['secret'];
         $encryptionKey = $result['encryption_key'];
 
-        // Measure time to verify sleep did NOT occur
-        $startTime = microtime(true);
-        $this->secretService->decryptSecretContent($secret, $encryptionKey);
-        $endTime = microtime(true);
+        // Should successfully decrypt without any rate limiting checks
+        $decryptedContent = $this->secretService->decryptSecretContent($secret, $encryptionKey);
+        $this->assertEquals('test content', $decryptedContent);
+    }
 
-        // Should NOT have slept, so execution time should be very fast (less than 100ms)
-        $executionTime = ($endTime - $startTime) * 1000; // Convert to milliseconds
-        $this->assertLessThan(100, $executionTime);
+    public function test_it_throws_exception_when_per_secret_rate_limit_exceeded()
+    {
+        // Enable rate limiting for this test
+        config([
+            'app.enable_secret_rate_limiting' => true,
+            'app.secret_rate_limit_attempts' => 2, // Low limit for testing
+        ]);
+
+        // Create a secret
+        $result = $this->secretService->createSecret('test content');
+        $secret = $result['secret'];
+        $encryptionKey = $result['encryption_key'];
+
+        // Simulate hitting the rate limit for this specific secret
+        $secretKey = 'decrypt:secret:' . $secret->id;
+        RateLimiter::hit($secretKey, 60);
+        RateLimiter::hit($secretKey, 60);
+        RateLimiter::hit($secretKey, 60); // This should exceed the limit
+
+        $this->expectException(TooManyAttemptsException::class);
+        $this->expectExceptionMessage('Too many attempts for this secret');
+
+        $this->secretService->decryptSecretContent($secret, $encryptionKey);
+    }
+
+    public function test_it_throws_exception_when_per_ip_rate_limit_exceeded()
+    {
+        // Enable rate limiting for this test
+        config([
+            'app.enable_secret_rate_limiting' => true,
+            'app.ip_rate_limit_attempts' => 2, // Low limit for testing
+        ]);
+
+        // Create a secret
+        $result = $this->secretService->createSecret('test content');
+        $secret = $result['secret'];
+        $encryptionKey = $result['encryption_key'];
+
+        // Simulate hitting the rate limit for this IP address
+        $ipKey = 'decrypt:ip:127.0.0.1'; // Default test IP
+        RateLimiter::hit($ipKey, 3600);
+        RateLimiter::hit($ipKey, 3600);
+        RateLimiter::hit($ipKey, 3600); // This should exceed the limit
+
+        $this->expectException(TooManyAttemptsException::class);
+        $this->expectExceptionMessage('Too many attempts from this IP address');
+
+        $this->secretService->decryptSecretContent($secret, $encryptionKey);
+    }
+
+    public function test_it_increments_rate_limiter_counters_when_enabled()
+    {
+        // Enable rate limiting for this test
+        config([
+            'app.enable_secret_rate_limiting' => true,
+            'app.secret_rate_limit_attempts' => 5,
+            'app.ip_rate_limit_attempts' => 20,
+        ]);
+
+        // Clear any existing rate limits
+        RateLimiter::clear('decrypt:secret:*');
+        RateLimiter::clear('decrypt:ip:*');
+
+        // Create a secret
+        $result = $this->secretService->createSecret('test content');
+        $secret = $result['secret'];
+        $encryptionKey = $result['encryption_key'];
+
+        $secretKey = 'decrypt:secret:' . $secret->id;
+        $ipKey = 'decrypt:ip:127.0.0.1';
+
+        // Verify counters are initially at 0
+        $this->assertEquals(0, RateLimiter::attempts($secretKey));
+        $this->assertEquals(0, RateLimiter::attempts($ipKey));
+
+        // Decrypt the secret
+        $this->secretService->decryptSecretContent($secret, $encryptionKey);
+
+        // Verify counters were incremented
+        $this->assertEquals(1, RateLimiter::attempts($secretKey));
+        $this->assertEquals(1, RateLimiter::attempts($ipKey));
     }
 
     
