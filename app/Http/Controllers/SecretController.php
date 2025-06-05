@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Secret;
 use App\Services\SecretService;
+use App\Services\SecretNotFoundException;
 use Throwable;
 
 class SecretController extends Controller
@@ -71,23 +72,23 @@ class SecretController extends Controller
 
         $decryptedData = $this->secretService->decryptPayload(request()->d);
         $secret = Secret::findOrFail($decryptedData['secret_id']);
-        $this->secretService->checkIfSecretIsValidOrAbort($secret);
 
         if ($secret->requires_password && !request()->password) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
         try {
+            // This method now handles expiration check, decryption, and deletion atomically
             $decryptedContent = $this->secretService->decryptSecretContent(
                 $secret,
                 $decryptedData['secret_key'],
                 request()->password
             );
+        } catch (SecretNotFoundException $th) {
+            return response()->json(['error' => 'Not Found'], 404);
         } catch (Throwable $th) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-
-        $secret->delete();
 
         return response()->json(['content' => $decryptedContent]);
     }
