@@ -44,6 +44,10 @@ class SecretApiController extends Controller
         // Generate the sharing URL
         $encryptedData = $this->secretService->generateSharingData($secret->id, $encryptionKey);
         $shareUrl = $this->secretService->generateShareUrl($encryptedData);
+        //make sure the share url is https, if not, update it
+        if (strpos($shareUrl, 'http://') !== false) {
+            $shareUrl = str_replace('http://', 'https://', $shareUrl);
+        }
 
         return response()->json([
             'success' => true,
