@@ -202,7 +202,8 @@ class SecretApiTest extends TestCase
         $response->assertStatus(201);
         
         $shareUrl = $response->json('data.share_url');
-        $this->assertStringStartsWith(url('/secrets/show?d='), $shareUrl);
+        $validHttpsShareUrl =  str_replace('http://', 'https://', url('/secrets/show?d='));
+        $this->assertStringStartsWith($validHttpsShareUrl, $shareUrl);
         
         // Verify the URL contains encrypted data parameter
         $parsedUrl = parse_url($shareUrl);
