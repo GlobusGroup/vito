@@ -1,13 +1,15 @@
 # Vito - Secure Secret Sharing
 
-[![Tests](https://github.com/GlobusGroup/vito/actions/workflows/tests.yml/badge.svg)](https://github.com/GlobusGroup/vito/actions/workflows/tests.yml)
+[![Tests](https://github.com/GlobusGroup/vito/actions/workflows/tests.yml/badge.svg)](https://github.com/GlobusGroup/vito/actions/workflows/tests.yml) [![Docker Pulls](https://img.shields.io/docker/pulls/globusgroup/vito)](https://hub.docker.com/r/globusgroup/vito) [![license](https://img.shields.io/github/license/dec0dOS/amazing-github-template.svg)](LICENSE)
+
+
 
 Vito is a secure, self-hosted secret sharing application built with Laravel. It allows users to share sensitive information like passwords, API keys, and confidential text through encrypted, single-use links that automatically expire.
 
 ![Vito Interface](https://github.com/GlobusGroup/vito/blob/main/.github/images/vito_screenshot_1.png?raw=true)
 
 
-## 🔒 Security Features
+## Security Features
 
 - **End-to-End Encryption**: Secrets are encrypted using AES-256-CBC with PBKDF2 key derivation
 - **Single-Use Links**: Each secret can only be accessed once and is permanently destroyed after viewing
@@ -17,7 +19,7 @@ Vito is a secure, self-hosted secret sharing application built with Laravel. It 
 - **Rate Limiting**: Built-in protection against brute force attacks
 - **HMAC Verification**: Ensures data integrity and authenticity
 
-## 🌐 Deploy With Docker
+## Deploy With Docker
 
 Vito includes a production-ready Docker setup using the pre-built image.
 
@@ -60,7 +62,7 @@ Vito includes a production-ready Docker setup using the pre-built image.
    
    Caddy automatically handles HTTPS certificates via Let's Encrypt, making it the simplest option for deployment.
 
-## 🚀 Features
+## Features
 
 - Clean, modern web interface built with Tailwind CSS
 - Mobile-responsive design
@@ -69,13 +71,13 @@ Vito includes a production-ready Docker setup using the pre-built image.
 - Database-agnostic (SQLite by default, supports MySQL, PostgreSQL)
 - Docker support for easy deployment
 
-## 📋 Requirements
+## Requirements
 
 - PHP 8.2 or higher
 - Composer
 - SQLite/MySQL/PostgreSQL (SQLite included by default)
 
-## 🛠 Installation
+## Installation
 
 ### Option 1: Docker Development Setup
 
@@ -152,7 +154,7 @@ The Docker development setup includes:
 8. **Access the application**
    - Application: http://localhost:8000
 
-## 🌐 Manual Production Deployment
+## Manual Production Deployment
 
 For traditional server deployment:
 
@@ -177,7 +179,7 @@ For traditional server deployment:
    chmod -R 775 storage bootstrap/cache
    ```
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -214,7 +216,7 @@ DB_DATABASE=/path/to/database.sqlite
 - Regularly update dependencies
 - Monitor logs for suspicious activity
 
-## 🔧 Development
+## Development
 
 ### Running Tests
 ```bash
@@ -226,7 +228,7 @@ php artisan test
 ./vendor/bin/pint
 ```
 
-## 🔌 API
+## API
 
 Vito provides a REST API for programmatic secret creation.
 
@@ -280,7 +282,7 @@ curl -X POST https://your-domain.com/api/v1/secrets \
 
 **Rate Limiting:** 60 requests per minute per IP address.
 
-## 📝 How It Works
+## How It Works
 
 1. **Secret Creation**: User enters sensitive content and optional password
 2. **Encryption**: Content is encrypted with AES-256-CBC using a random 256-bit key
@@ -290,7 +292,7 @@ curl -X POST https://your-domain.com/api/v1/secrets \
 6. **Access**: Recipients use the URL to decrypt and view the secret
 7. **Destruction**: The secret is permanently deleted after first access or expiration
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -298,11 +300,11 @@ curl -X POST https://your-domain.com/api/v1/secrets \
 4. Run tests and ensure code style compliance
 5. Submit a pull request
 
-## 📄 License
+## Licence
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT Licence.
 
-## ⚠️ Important Security Notes
+## Important Security Notes
 
 - **HTTPS Required**: Always run Vito behind a reverse proxy with HTTPS in production
 - **Single Use**: Each secret link works only once - save it immediately after creation
@@ -310,6 +312,6 @@ This project is licensed under the MIT License.
 - **Expiration**: All secrets expire automatically after the configured time limit
 - **Zero Knowledge**: Server administrators cannot decrypt secrets without the sharing URLs
 
-## 🆘 Support
+## Support
 
 For issues, questions, or contributions, please visit the [GitHub repository](https://github.com/GlobusGroup/vito).
