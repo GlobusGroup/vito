@@ -11,7 +11,7 @@ Vito is a secure, self-hosted secret sharing application built with Laravel. It 
 
 ## Security Features
 
-- **End-to-End Encryption**: Secrets are encrypted using AES-256-CBC with PBKDF2 key derivation
+- **At Rest Encryption**: Secrets are encrypted using AES-256-CBC with PBKDF2 key derivation
 - **Single-Use Links**: Each secret can only be accessed once and is permanently destroyed after viewing
 - **Automatic Expiration**: All secrets automatically expire after 1 hour (configurable)
 - **Optional Password Protection**: optionally add an additional password layer for extra security
